@@ -9,6 +9,8 @@ import 'package:number_painter/models/model_svg_shape.dart';
 import 'package:number_painter/svg_painter.dart';
 import 'package:xml/xml.dart';
 
+//TODO: может сделать InheritedWidget для переброса инфы?
+
 class SvgViewScreen extends StatefulWidget {
   const SvgViewScreen({Key? key}) : super(key: key);
 

@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:number_painter/models/model_svg_line.dart';
 import 'package:number_painter/models/model_svg_shape.dart';
+
 //TODO: разобраться с инкапсуляцией
 class SvgPainter extends CustomPainter {
   final List<ModelSvgShape> _shapes;
@@ -40,16 +41,24 @@ class SvgPainter extends CustomPainter {
 
     for (final shape in _shapes) {
       final path = shape.transformedPath;
+      if (shape.isPainted){
+        _paint
+          ..color = HexColor(shape.fill)
+          ..style = PaintingStyle.fill;
+        canvas.drawPath(path!, _paint);
+      }
       final selected = path!.contains(_notifier.value);
       //final hex = Color(int.parse(shape.fill.replaceAll('#', '0x')));
       selectedShape ??= selected ? shape : null;
+      
 
-      if (selected && selectedShape!.id != null) {
-        debugPrint("_getSelectedColor and selectedShape.id: $_getSelectedColor  ${selectedShape.id}");
+      if (selected) {
+        debugPrint("_getSelectedColor and selectedShape.id: $_getSelectedColor  ${selectedShape!.id}");
         _paint
           ..color = HexColor(shape.fill)
           ..style = PaintingStyle.fill;
         canvas.drawPath(path, _paint);
+        selectedShape.isPainted = true;
       }
 
       final bounds = path.getBounds();
@@ -121,4 +130,3 @@ class SvgPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
-
