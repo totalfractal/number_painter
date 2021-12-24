@@ -5,6 +5,8 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:number_painter/models/model_svg_line.dart';
 import 'package:number_painter/models/model_svg_shape.dart';
 
+Size _size = Size.infinite;
+
 //TODO: разобраться с инкапсуляцией
 class SvgPainter extends CustomPainter {
   final List<ModelSvgShape> shapes;
@@ -15,7 +17,7 @@ class SvgPainter extends CustomPainter {
   final bool isInit;
   final Paint _paint = Paint();
   Color? selectedColor;
-  Size _size = Size.infinite;
+  //Size _size = Size.infinite;
   SvgPainter({
     required this.notifier,
     required this.shapes,
@@ -161,7 +163,8 @@ class SvgPainter extends CustomPainter {
     } */
 
     //TODO: попробовать отрисовывать один раз
-    if (!isInit) {
+   
+      if (!isInit) {
       for (final line in lines) {
         final path = line.transformedPath;
         if (path != null) {
@@ -169,6 +172,8 @@ class SvgPainter extends CustomPainter {
         }
       }
     }
+    
+    
 
     /*  if (selectedShape != null) {
       _paint

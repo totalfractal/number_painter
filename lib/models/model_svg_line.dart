@@ -29,7 +29,7 @@ class ModelSvgLine {
   factory ModelSvgLine.fromElement(XmlElement svgElement) {
     final paint = Paint()
       ..color = HexColor('#1A171B')
-      ..strokeWidth = svgElement.getAttribute('stroke-width') != null ? double.tryParse(svgElement.getAttribute('stroke-width')!) ?? 0 : 0
+      ..strokeWidth = svgElement.getAttribute('stroke-width') != null ? double.tryParse(svgElement.getAttribute('stroke-width')!) != null ? -(1 - double.parse(svgElement.getAttribute('stroke-width')!)) : 0 : 0
       ..style = PaintingStyle.stroke
       ..strokeMiterLimit =
           svgElement.getAttribute('stroke-miterlimit') != null ? double.tryParse(svgElement.getAttribute('stroke-miterlimit')!) ?? 0 : 0

@@ -36,16 +36,6 @@ class _SvgViewScreenState extends State<SvgViewScreen> {
   @override
   void initState() {
     super.initState();
-    DrawableRoot _svgRoot;
-    svg.fromSvgString(stringSvg, 'key').then((value) {
-      List<DrawableShape> newcChilds = [];
-      for (final child in value.children) {
-        if (child is DrawableShape) {
-          newcChilds.add(DrawableShape(child.id, child.path, child.style));
-        }
-      }
-    
-    });
     stringSvgPathShapes.addAll((XmlDocument.parse(stringSvg).findAllElements('path')).toList());
     for (final itemPath in stringSvgPathShapes) {
       if (itemPath.toString().contains('fill')) {
@@ -82,35 +72,35 @@ class _SvgViewScreenState extends State<SvgViewScreen> {
               onLongPress: () => setState(() => _isInteract = true), // TODO: обработать в Listener
 
               child: Listener(
-                /* onPointerUp: (e) {
+                onPointerUp: (e) {
                   if (!_isInteract) {
                     setState(() {
                       notifier.value = e.localPosition;
                     });
                   }
-                }, */
+                },
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    /* SizedBox(
+                    SizedBox(
                       width: MediaQuery.of(context).size.width * 0.8,
                       height: MediaQuery.of(context).size.width * 0.8,
                       child: CustomPaint(
                         painter: ShapePainter(),
                       ),
-                    ), */
+                    ),
                     SizedBox(
                       width: MediaQuery.of(context).size.width,
                       height: MediaQuery.of(context).size.height * 0.85,
-                      child: SvgPicture.string(stringSvg),
-                      /* ColoringPaint(
+                      child: //SvgPicture.string(stringSvg),
+                      ColoringPaint(
                         notifier: notifier,
                         svgShapes: _svgShapes,
                         selectedSvgShapes: _selectedSvgShapes,
                         svgLines: _svgLines,
                         sortedShapes: _sortedShapes,
                         getSelectedColor: _getSelectedColor,
-                      ), */
+                      ),
                     ),
                   ],
                 ),
