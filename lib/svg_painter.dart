@@ -85,6 +85,7 @@ class SvgPainter extends CustomPainter {
             ..color = HexColor(shape.fill)
             ..style = PaintingStyle.fill;
         } else {
+          _addNumber(shape, shape.sortedId, size, canvas);
           final selected = path!.contains(notifier.value);
           selectedShape ??= selected ? shape : null;
           if (selected) {
@@ -98,7 +99,6 @@ class SvgPainter extends CustomPainter {
               ..color = Colors.transparent
               ..style = PaintingStyle.fill;
           }
-          
         }
       } else {
         if (shape.isPainted) {
@@ -106,10 +106,9 @@ class SvgPainter extends CustomPainter {
             ..color = HexColor(shape.fill)
             ..style = PaintingStyle.fill;
         } else {
-            _paint
-              ..color = Colors.white
-              ..style = PaintingStyle.fill;
-          
+          _paint
+            ..color = Colors.white
+            ..style = PaintingStyle.fill;
         }
       }
       canvas.drawPath(path!, _paint);
@@ -166,12 +165,7 @@ class SvgPainter extends CustomPainter {
       for (final line in lines) {
         final path = line.transformedPath;
         if (path != null) {
-          _paint
-            ..color = HexColor("#1A171B")
-            ..strokeWidth = 0
-            ..style = PaintingStyle.stroke;
-
-          canvas.drawPath(path, _paint);
+          canvas.drawPath(path, line.paint);
         }
       }
     }

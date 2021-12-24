@@ -5,7 +5,7 @@ class ShapePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     canvas.clipRect(Offset.zero & size);
-    final Pattern pattern = Checkers(bgColor: Colors.lightGreenAccent, fgColor: Colors.black, featuresCount: 100);
+    final Pattern pattern = Checkers(bgColor: Colors.grey[300]!, fgColor: Colors.grey[500]!, featuresCount: 100);
     pattern.paintOnCanvas(canvas, size);
   }
 
