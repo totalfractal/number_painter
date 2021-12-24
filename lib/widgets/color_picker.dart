@@ -5,7 +5,7 @@ import 'package:number_painter/widgets/circular_progress_indicator.dart';
 
 class ColorPicker extends StatefulWidget {
   final Map<HexColor, List<ModelSvgShape>> sortedShapes;
-  final ValueChanged<int> setSelectedColor;
+  final ValueChanged<Color> setSelectedColor;
 
   const ColorPicker({required this.sortedShapes, required this.setSelectedColor, Key? key}) : super(key: key);
 
@@ -14,7 +14,7 @@ class ColorPicker extends StatefulWidget {
 }
 
 class _ColorPickerState extends State<ColorPicker> {
-  int selectedColor = -1;
+  Color selectedColor = Colors.transparent;
   //double percent = 0.0;
 
   @override
@@ -40,7 +40,7 @@ class _ColorPickerState extends State<ColorPicker> {
             return GestureDetector(
               onTap: () {
                 setState(() {
-                  selectedColor = index;
+                  selectedColor = widget.sortedShapes.keys.elementAt(index);
                   widget.setSelectedColor(selectedColor);
                 });
               },

@@ -7,83 +7,163 @@ import 'package:number_painter/models/model_svg_shape.dart';
 
 //TODO: разобраться с инкапсуляцией
 class SvgPainter extends CustomPainter {
-  final List<ModelSvgShape> _shapes;
-  final List<ModelSvgShape>? _selectedShapes;
-  final List<ModelSvgLine> _lines;
-  final ValueNotifier<Offset> _notifier;
+  final List<ModelSvgShape> shapes;
+  List<ModelSvgShape>? selectedShapes;
+  final List<ModelSvgLine> lines;
+  final Map<HexColor, List<ModelSvgShape>> sortedShapes;
+  final ValueNotifier<Offset> notifier;
+  final bool isInit;
   final Paint _paint = Paint();
-  final bool _isInit;
+  Color? selectedColor;
   Size _size = Size.infinite;
-  int _getSelectedColor;
-  SvgPainter(this._notifier, this._shapes, this._selectedShapes, this._lines, this._getSelectedColor, this._isInit) : super(repaint: _notifier);
+  SvgPainter({
+    required this.notifier,
+    required this.shapes,
+    required this.selectedShapes,
+    required this.lines,
+    required this.sortedShapes,
+    required this.selectedColor,
+    required this.isInit,
+  }) : super(repaint: null);
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (!_isInit) {
+    if (!isInit) {
       if (size != _size) {
         _size = size;
-        final fs = applyBoxFit(BoxFit.contain, Size(3000, 3000), size);
+        final fs = applyBoxFit(BoxFit.contain, const Size(3000, 3000), size);
         final r = Alignment.center.inscribe(fs.destination, Offset.zero & size);
         final matrix = Matrix4.translationValues(r.left, r.top, 0)..scale(fs.destination.width / fs.source.width);
-        for (final shape in _shapes) {
+        for (final shape in shapes) {
           shape.transform(matrix);
         }
-        for (final shape in _lines) {
+        for (final shape in lines) {
           shape.transform(matrix);
         }
       }
     }
 
-    canvas
-      ..clipRect(Offset.zero & size)
-      ..drawColor(Colors.white, BlendMode.screen);
-    ModelSvgShape? selectedShape;
+    canvas.clipRect(Offset.zero & size);
 
-    for (final shape in _shapes) {
-      final path = shape.transformedPath;
-      if (shape.isPainted){
+    ModelSvgShape? selectedShape;
+    /* if (selectedShapes != null) {
+      for (final selectedShape in selectedShapes!) {
+        final path = selectedShape.transformedPath;
         _paint
-          ..color = HexColor(shape.fill)
+          ..color = Colors.transparent
           ..style = PaintingStyle.fill;
         canvas.drawPath(path!, _paint);
       }
-      final selected = path!.contains(_notifier.value);
-      //final hex = Color(int.parse(shape.fill.replaceAll('#', '0x')));
-      selectedShape ??= selected ? shape : null;
-      
+      for (var i = 0; i < sortedShapes.entries.length; i++) {
+        final sortedPair = sortedShapes.entries.elementAt(i);
 
-      if (selected) {
-        debugPrint("_getSelectedColor and selectedShape.id: $_getSelectedColor  ${selectedShape!.id}");
-        _paint
-          ..color = HexColor(shape.fill)
-          ..style = PaintingStyle.fill;
-        canvas.drawPath(path, _paint);
-        selectedShape.isPainted = true;
+        for (final shape in sortedPair.value) {
+          final path = shape.transformedPath;
+          _addNumber(shape, i, size, canvas);
+          _paint
+            ..color = HexColor("#1A171B")
+            ..strokeWidth = 0
+            ..style = PaintingStyle.stroke;
+
+          canvas.drawPath(path!, _paint);
+          if (sortedPair.key != selectedColor) {
+            if (!shape.isPainted) {
+              _paint
+                ..color = Colors.white
+                ..style = PaintingStyle.fill;
+              canvas.drawPath(path!, _paint);
+            }
+          }
+        }
       }
-
-      final bounds = path.getBounds();
-      final txtSize = bounds.width * 0.10;
-      final textStyle = TextStyle(
-        color: Colors.black,
-        fontSize: txtSize,
-      );
-      final textSpan = TextSpan(
-        text: shape.id,
-        style: textStyle,
-      );
-      final textPainter = TextPainter(
-        text: textSpan,
-        textDirection: TextDirection.ltr,
-      );
-      textPainter.layout(
-        minWidth: 0,
-        maxWidth: size.width,
-      );
-      textPainter.paint(canvas, bounds.center);
+    } */
+    for (final shape in shapes) {
+      final path = shape.transformedPath;
+      if (shape.isPicked) {
+        if (shape.isPainted) {
+          _paint
+            ..color = HexColor(shape.fill)
+            ..style = PaintingStyle.fill;
+        } else {
+          final selected = path!.contains(notifier.value);
+          selectedShape ??= selected ? shape : null;
+          if (selected) {
+            debugPrint('_getSelectedColor and selectedShape.id: $selectedColor  ${selectedShape!.id}');
+            _paint
+              ..color = HexColor(shape.fill)
+              ..style = PaintingStyle.fill;
+            selectedShape.isPainted = true;
+          } else {
+            _paint
+              ..color = Colors.transparent
+              ..style = PaintingStyle.fill;
+          }
+          
+        }
+      } else {
+        if (shape.isPainted) {
+          _paint
+            ..color = HexColor(shape.fill)
+            ..style = PaintingStyle.fill;
+        } else {
+            _paint
+              ..color = Colors.white
+              ..style = PaintingStyle.fill;
+          
+        }
+      }
+      canvas.drawPath(path!, _paint);
     }
+    /* for (var i = 0; i < sortedShapes.entries.length; i++) {
+      final sortedPair = sortedShapes.entries.elementAt(i);
+      for (final shape in sortedPair.value) {
+        final path = shape.transformedPath;
+        if (shape.isPainted) {
+          _paint
+            ..color = HexColor(shape.fill)
+            ..style = PaintingStyle.fill;
+          canvas.drawPath(path!, _paint);
+        }
+
+        final selected = path!.contains(notifier.value);
+        selectedShape ??= selected ? shape : null;
+
+        if (selected) {
+          debugPrint("_getSelectedColor and selectedShape.id: $selectedColor  ${selectedShape!.id}");
+          _paint
+            ..color = HexColor(shape.fill)
+            ..style = PaintingStyle.fill;
+          canvas.drawPath(path, _paint);
+          selectedShape.isPainted = true;
+        }
+        if (!shape.isPainted) {
+          final metrics = path.computeMetrics();
+          final bounds = path.getBounds();
+          final txtSize = metrics.elementAt(0).length * 0.05;
+          final textStyle = TextStyle(
+            color: Colors.black,
+            fontSize: txtSize,
+          );
+          final textSpan = TextSpan(
+            text: '${i + 1}',
+            style: textStyle,
+          );
+          TextPainter(
+            text: textSpan,
+            textDirection: TextDirection.ltr,
+          )
+            ..layout(
+              minWidth: 0,
+              maxWidth: size.width,
+            )
+            ..paint(canvas, bounds.center);
+        }
+      }
+    } */
+
     //TODO: попробовать отрисовывать один раз
-    if (!_isInit) {
-      for (final line in _lines) {
+    if (!isInit) {
+      for (final line in lines) {
         final path = line.transformedPath;
         if (path != null) {
           _paint
@@ -96,17 +176,7 @@ class SvgPainter extends CustomPainter {
       }
     }
 
-    /* for (var line in _getPathSvgModel.where((element) => element.strokeWidth != null)) {
-      debugPrint('line');
-      final path = line._transformedPath;
-      _paint
-        ..color = HexColor("#1A171B")
-        ..strokeWidth = line.strokeWidth!
-        ..style = PaintingStyle.stroke;
-      canvas.drawPath(path!, _paint);
-    } */
-
-    if (selectedShape != null) {
+    /*  if (selectedShape != null) {
       _paint
         ..color = Colors.black
         ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 12)
@@ -123,8 +193,32 @@ class SvgPainter extends CustomPainter {
         ))
         ..addText(selectedShape.id);
       final paragraph = builder.build()..layout(ui.ParagraphConstraints(width: size.width));
-      canvas.drawParagraph(paragraph, _notifier.value.translate(0, 0));
-    }
+      canvas.drawParagraph(paragraph, notifier.value.translate(0, 0));
+    } */
+  }
+
+  void _addNumber(ModelSvgShape shape, int i, ui.Size size, ui.Canvas canvas) {
+    final path = shape.transformedPath;
+    final metrics = path!.computeMetrics();
+    final bounds = path.getBounds();
+    final txtSize = metrics.elementAt(0).length * 0.05;
+    final textStyle = TextStyle(
+      color: Colors.black,
+      fontSize: txtSize,
+    );
+    final textSpan = TextSpan(
+      text: '${i + 1}',
+      style: textStyle,
+    );
+    TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+    )
+      ..layout(
+        minWidth: 0,
+        maxWidth: size.width,
+      )
+      ..paint(canvas, bounds.center);
   }
 
   @override

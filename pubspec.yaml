@@ -40,6 +40,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter_svg: ^0.23.0+1
   surf_lint_rules: ^1.4.1
+  patterns_canvas: ^0.3.5
 
 dev_dependencies:
   flutter_test:

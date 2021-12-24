@@ -10,6 +10,8 @@ class ModelSvgShape {
   final List<ModelSvgShape> listModelSvgFile;
   final Path _path;
   bool isPainted = false;
+  bool isPicked = false;
+  int sortedId = -1;
   Path? transformedPath;
   ModelSvgShape._(
     this.id,

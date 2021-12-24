@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:number_painter/checkers_painter.dart';
 import 'package:number_painter/widgets/color_picker.dart';
 import 'package:number_painter/widgets/coloring_paint.dart';
 import 'package:number_painter/main.dart';
@@ -28,7 +29,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> {
   final List<ModelSvgLine> _svgLines = [];
   final Map<HexColor, List<ModelSvgShape>> _sortedShapes = {};
   late SvgPainter _svgPainter; //TODO: убрать late
-  int _getSelectedColor = -1;
+  Color? _getSelectedColor;
   bool _isInteract = true;
   bool _isInit = false;
   DrawableRoot? _svgRoot;
@@ -46,7 +47,15 @@ class _SvgViewScreenState extends State<SvgViewScreen> {
       }
     }
     _sortedShapes.addAll(_getSortedShapes(_svgShapes));
-    _svgPainter = SvgPainter(notifier, _svgShapes, _selectedSvgShapes, _svgLines, _getSelectedColor, _isInit);
+    _svgPainter = SvgPainter(
+      notifier: notifier,
+      shapes: _svgShapes,
+      selectedShapes: _selectedSvgShapes,
+      lines: _svgLines,
+      sortedShapes: _sortedShapes,
+      selectedColor: _getSelectedColor,
+      isInit: _isInit,
+    );
   }
 
   @override
@@ -55,9 +64,10 @@ class _SvgViewScreenState extends State<SvgViewScreen> {
       backgroundColor: Colors.white,
       body: Column(
         children: <Widget>[
+          const Spacer(),
           InteractiveViewer(
-            onInteractionStart: !_isInteract ? (_) => setState(() => _isInteract = true) : null,
-            onInteractionEnd: (_) => setState(() => _isInteract = _getSelectedColor != -1 ? false : true),
+            //onInteractionStart: !_isInteract ? (_) => setState(() => _isInteract = true) : null,
+            //onInteractionEnd: (_) => setState(() => _isInteract = _getSelectedColor != Colors.transparent ? false : true),
             maxScale: 10,
             child: GestureDetector(
               onLongPress: () => setState(() => _isInteract = true), // TODO: обработать в Listener
@@ -65,25 +75,40 @@ class _SvgViewScreenState extends State<SvgViewScreen> {
               child: Listener(
                 behavior: HitTestBehavior.opaque,
                 onPointerUp: (e) {
-                  setState(() {
-                    if (!_isInteract) {
+                  if (!_isInteract) {
+                    setState(() {
                       notifier.value = e.localPosition;
-                    }
-                  });
+                    });
+                  }
                 },
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height * 0.85,
-                  child: ColoringPaint(
-                      notifier: notifier,
-                      svgShapes: _svgShapes,
-                      selectedSvgShapes: _selectedSvgShapes,
-                      svgLines: _svgLines,
-                      getSelectedColor: _getSelectedColor),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      height: MediaQuery.of(context).size.width * 0.8,
+                      child: CustomPaint(
+                        painter: ShapePainter(),
+                      ),
+                    ),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height * 0.85,
+                      child: ColoringPaint(
+                        notifier: notifier,
+                        svgShapes: _svgShapes,
+                        selectedSvgShapes: _selectedSvgShapes,
+                        svgLines: _svgLines,
+                        sortedShapes: _sortedShapes,
+                        getSelectedColor: _getSelectedColor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
+          const Spacer(),
           const Divider(
             height: 1,
             color: Colors.black,
@@ -101,12 +126,19 @@ class _SvgViewScreenState extends State<SvgViewScreen> {
     );
   }
 
-  void _callBackIndexColorOfColorPicker(int selectedColor) {
+  void _callBackIndexColorOfColorPicker(Color selectedColor) {
     setState(() {
       if (_getSelectedColor != selectedColor) {
         _getSelectedColor = selectedColor;
-        _selectedSvgShapes = _sortedShapes.entries.elementAt(selectedColor).value;
-        _isInteract = _getSelectedColor != -1 ? false : true;
+        _selectedSvgShapes = _sortedShapes[selectedColor];
+        for (final shape in _svgShapes) {
+          if (HexColor(shape.fill) == _getSelectedColor) {
+            shape.isPicked = true;
+          } else {
+            shape.isPicked = false;
+          }
+        }
+        _isInteract = _getSelectedColor != Colors.transparent ? false : true;
       }
       debugPrint('_callBackIndexColorOfColorPicker: $_getSelectedColor');
     });
@@ -117,8 +149,10 @@ class _SvgViewScreenState extends State<SvgViewScreen> {
     for (final shape in shapes) {
       if (sortedShapes.containsKey(HexColor(shape.fill))) {
         sortedShapes[HexColor(shape.fill)]!.add(shape);
+        shape.sortedId = sortedShapes.keys.toList().indexOf(HexColor(shape.fill));
       } else {
         sortedShapes[HexColor(shape.fill)] = [shape];
+        shape.sortedId = sortedShapes.keys.toList().indexOf(HexColor(shape.fill));
       }
     }
     return sortedShapes;
