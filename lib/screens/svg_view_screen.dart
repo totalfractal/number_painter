@@ -30,15 +30,14 @@ class _SvgViewScreenState extends State<SvgViewScreen> with SingleTickerProvider
   final List<ModelSvgLine> _svgLines = [];
   final Map<HexColor, List<ModelSvgShape>> _sortedShapes = {};
   Color? _getSelectedColor;
-  bool _isInteract = true;
+  bool _isInteract = false;
   bool _isInit = false;
 
-  /* late final AnimationController _controller0 = AnimationController(
-    duration: Duration(microseconds: 500),
+  late final AnimationController _controller0 = AnimationController(
+    duration: Duration(milliseconds: 2000),
     vsync: this,
-  )..addListener(() => setState(() {
-    
-  })); */
+    value: 0,
+  )..addListener(() => setState(() {}));
 
   @override
   void initState() {
@@ -53,7 +52,6 @@ class _SvgViewScreenState extends State<SvgViewScreen> with SingleTickerProvider
       }
     }
     _sortedShapes.addAll(_getSortedShapes(_svgShapes));
-   
   }
 
   @override
@@ -64,8 +62,8 @@ class _SvgViewScreenState extends State<SvgViewScreen> with SingleTickerProvider
         children: <Widget>[
           const Spacer(),
           InteractiveViewer(
-            //onInteractionStart: !_isInteract ? (_) => setState(() => _isInteract = true) : null,
-            //onInteractionEnd: (_) => setState(() => _isInteract = _getSelectedColor != Colors.transparent ? false : true),
+            onInteractionStart: !_isInteract ? (_) => setState(() => _isInteract = true) : null,
+            onInteractionEnd: (_) => setState(() => _isInteract = _getSelectedColor == null ),
             maxScale: 10,
             child: Stack(
               alignment: Alignment.center,
@@ -80,38 +78,43 @@ class _SvgViewScreenState extends State<SvgViewScreen> with SingleTickerProvider
                     ),
                   ),
                 ),
-                /* SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height * 0.85,
-                  child: //SvgPicture.string(stringSvg),
-                      RepaintBoundary(
-                        child: CustomPaint(
-                          isComplex: true,
-                          painter: SvgPainter(
-                            notifier: notifier,
-                            shapes: _svgShapes,
-                            selectedShapes: _selectedSvgShapes,
-                            lines: _svgLines,
-                            sortedShapes: _sortedShapes,
-                            selectedColor: _getSelectedColor,
-                            isInit: _isInit,
-                          ),
-                        ),
-                      ),
-                ), */
                 SizedBox(
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height * 0.85,
-                  child: Listener(
-                      onPointerUp: (e) {
-                        if (_isInteract) {
-                          setState(() {
-                            notifier.value = e.localPosition;
-
-                          });
-                        }
-                      },child: CustomPaint(painter: CirclePainter(notifier: notifier, radius: 100),)),
-                )
+                  child: CustomPaint(
+                    painter: CirclePainter(notifier: notifier, radius: _controller0.value * 100),
+                  ),
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height * 0.85,
+                  child: //SvgPicture.string(stringSvg),
+                      Listener(
+                    onPointerUp: (e) {
+                      if (_isInteract) {
+                        _controller0.reset();
+                        setState(() {
+                          notifier.value = e.localPosition;
+                        });
+                        _controller0.fling(velocity: 0.1);
+                      }
+                    },
+                    child: RepaintBoundary(
+                      child: CustomPaint(
+                        isComplex: true,
+                        painter: SvgPainter(
+                          notifier: notifier,
+                          shapes: _svgShapes,
+                          selectedShapes: _selectedSvgShapes,
+                          lines: _svgLines,
+                          sortedShapes: _sortedShapes,
+                          selectedColor: _getSelectedColor,
+                          isInit: _isInit,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -145,7 +148,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with SingleTickerProvider
             shape.isPicked = false;
           }
         }
-        _isInteract = _getSelectedColor != Colors.transparent ? false : true;
+        _isInteract = _getSelectedColor == null;
       }
       debugPrint('_callBackIndexColorOfColorPicker: $_getSelectedColor');
     });
