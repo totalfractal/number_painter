@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:number_painter/checkers_painter.dart';
+import 'package:number_painter/circle_painer.dart';
 import 'package:number_painter/widgets/color_picker.dart';
 import 'package:number_painter/widgets/coloring_paint.dart';
 import 'package:number_painter/main.dart';
@@ -19,7 +20,7 @@ class SvgViewScreen extends StatefulWidget {
   _SvgViewScreenState createState() => _SvgViewScreenState();
 }
 
-class _SvgViewScreenState extends State<SvgViewScreen> {
+class _SvgViewScreenState extends State<SvgViewScreen> with SingleTickerProviderStateMixin {
   final notifier = ValueNotifier(Offset.zero);
 
   final List<XmlElement> stringSvgPathShapes = [];
@@ -28,10 +29,16 @@ class _SvgViewScreenState extends State<SvgViewScreen> {
   List<ModelSvgShape>? _selectedSvgShapes;
   final List<ModelSvgLine> _svgLines = [];
   final Map<HexColor, List<ModelSvgShape>> _sortedShapes = {};
-  late SvgPainter _svgPainter; //TODO: убрать late
   Color? _getSelectedColor;
   bool _isInteract = true;
   bool _isInit = false;
+
+  /* late final AnimationController _controller0 = AnimationController(
+    duration: Duration(microseconds: 500),
+    vsync: this,
+  )..addListener(() => setState(() {
+    
+  })); */
 
   @override
   void initState() {
@@ -46,15 +53,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> {
       }
     }
     _sortedShapes.addAll(_getSortedShapes(_svgShapes));
-    _svgPainter = SvgPainter(
-      notifier: notifier,
-      shapes: _svgShapes,
-      selectedShapes: _selectedSvgShapes,
-      lines: _svgLines,
-      sortedShapes: _sortedShapes,
-      selectedColor: _getSelectedColor,
-      isInit: _isInit,
-    );
+   
   }
 
   @override
@@ -68,43 +67,52 @@ class _SvgViewScreenState extends State<SvgViewScreen> {
             //onInteractionStart: !_isInteract ? (_) => setState(() => _isInteract = true) : null,
             //onInteractionEnd: (_) => setState(() => _isInteract = _getSelectedColor != Colors.transparent ? false : true),
             maxScale: 10,
-            child: GestureDetector(
-              onLongPress: () => setState(() => _isInteract = true), // TODO: обработать в Listener
-
-              child: Listener(
-                onPointerUp: (e) {
-                  if (!_isInteract) {
-                    setState(() {
-                      notifier.value = e.localPosition;
-                    });
-                  }
-                },
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.8,
-                      height: MediaQuery.of(context).size.width * 0.8,
-                      child: CustomPaint(
-                        painter: ShapePainter(),
-                      ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  height: MediaQuery.of(context).size.width * 0.8,
+                  child: const RepaintBoundary(
+                    child: CustomPaint(
+                      isComplex: true,
+                      painter: ShapePainter(),
                     ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height * 0.85,
-                      child: //SvgPicture.string(stringSvg),
-                      ColoringPaint(
-                        notifier: notifier,
-                        svgShapes: _svgShapes,
-                        selectedSvgShapes: _selectedSvgShapes,
-                        svgLines: _svgLines,
-                        sortedShapes: _sortedShapes,
-                        getSelectedColor: _getSelectedColor,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                /* SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height * 0.85,
+                  child: //SvgPicture.string(stringSvg),
+                      RepaintBoundary(
+                        child: CustomPaint(
+                          isComplex: true,
+                          painter: SvgPainter(
+                            notifier: notifier,
+                            shapes: _svgShapes,
+                            selectedShapes: _selectedSvgShapes,
+                            lines: _svgLines,
+                            sortedShapes: _sortedShapes,
+                            selectedColor: _getSelectedColor,
+                            isInit: _isInit,
+                          ),
+                        ),
+                      ),
+                ), */
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height * 0.85,
+                  child: Listener(
+                      onPointerUp: (e) {
+                        if (_isInteract) {
+                          setState(() {
+                            notifier.value = e.localPosition;
+
+                          });
+                        }
+                      },child: CustomPaint(painter: CirclePainter(notifier: notifier, radius: 100),)),
+                )
+              ],
             ),
           ),
           const Spacer(),

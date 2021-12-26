@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:patterns_canvas/patterns_canvas.dart';
 
 class ShapePainter extends CustomPainter {
+  const ShapePainter();
   @override
   void paint(Canvas canvas, Size size) {
     canvas.clipRect(Offset.zero & size);
