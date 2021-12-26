@@ -3,6 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:number_painter/checkers_painter.dart';
 import 'package:number_painter/circle_painer.dart';
+import 'package:number_painter/custom_clipper.dart';
+import 'package:number_painter/fade_painter.dart';
 import 'package:number_painter/widgets/color_picker.dart';
 import 'package:number_painter/widgets/coloring_paint.dart';
 import 'package:number_painter/main.dart';
@@ -20,23 +22,29 @@ class SvgViewScreen extends StatefulWidget {
   _SvgViewScreenState createState() => _SvgViewScreenState();
 }
 
-class _SvgViewScreenState extends State<SvgViewScreen> with SingleTickerProviderStateMixin {
+class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateMixin {
   final notifier = ValueNotifier(Offset.zero);
 
   final List<XmlElement> stringSvgPathShapes = [];
   final Iterable<XmlElement> _stringSvgPathLines = [];
   final List<ModelSvgShape> _svgShapes = [];
-  List<ModelSvgShape>? _selectedSvgShapes;
+  List<ModelSvgShape> _selectedSvgShapes = [];
+  //Path _selectedPath = Path();
+  ModelSvgShape _selectedShape = ModelSvgShape.epmty();
   final List<ModelSvgLine> _svgLines = [];
   final Map<HexColor, List<ModelSvgShape>> _sortedShapes = {};
   Color? _getSelectedColor;
   bool _isInteract = false;
   bool _isInit = false;
 
-  late final AnimationController _controller0 = AnimationController(
-    duration: Duration(milliseconds: 2000),
+  late final AnimationController _fadeController = AnimationController(
+    duration: Duration(milliseconds: 1000),
     vsync: this,
-    value: 0,
+  )..addListener(() => setState(() {}));
+
+  late final AnimationController _fillController = AnimationController(
+    duration: Duration(milliseconds: 1000),
+    vsync: this,
   )..addListener(() => setState(() {}));
 
   @override
@@ -62,8 +70,8 @@ class _SvgViewScreenState extends State<SvgViewScreen> with SingleTickerProvider
         children: <Widget>[
           const Spacer(),
           InteractiveViewer(
-            onInteractionStart: !_isInteract ? (_) => setState(() => _isInteract = true) : null,
-            onInteractionEnd: (_) => setState(() => _isInteract = _getSelectedColor == null ),
+            //onInteractionStart: !_isInteract ? (_) => setState(() => _isInteract = true) : null,
+            //onInteractionEnd: (_) => setState(() => _isInteract = _getSelectedColor == null ),
             maxScale: 10,
             child: Stack(
               alignment: Alignment.center,
@@ -78,25 +86,48 @@ class _SvgViewScreenState extends State<SvgViewScreen> with SingleTickerProvider
                     ),
                   ),
                 ),
+                
                 SizedBox(
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height * 0.85,
                   child: CustomPaint(
-                    painter: CirclePainter(notifier: notifier, radius: _controller0.value * 100),
+                    painter: FadePainter(animation: _fadeController, selectedShapes: _selectedSvgShapes),
                   ),
                 ),
+                if (_selectedShape.transformedPath != null)
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height * 0.85,
+                    child: CustomPaint(
+                      painter: CirclePainter(notifier: notifier, radius: _fillController.value * 100, selectedShape: _selectedShape),
+                    ),
+                  ),
                 SizedBox(
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height * 0.85,
                   child: //SvgPicture.string(stringSvg),
                       Listener(
                     onPointerUp: (e) {
-                      if (_isInteract) {
-                        _controller0.reset();
-                        setState(() {
-                          notifier.value = e.localPosition;
-                        });
-                        _controller0.fling(velocity: 0.1);
+                      if (!_isInteract) {
+                        debugPrint('up');
+                        _fillController.reset();
+                        if (_selectedSvgShapes != null) {
+                          for (final shape in _selectedSvgShapes) {
+                            if (shape.transformedPath!.contains(e.localPosition)) {
+                              if (_selectedShape != shape && !shape.isPainted) {
+                                setState(() {
+                                  _selectedShape = shape;
+                                  notifier.value = e.localPosition;
+                                  _isInteract = true;
+                                });
+                                _fillController.forward().then((_) {
+                                  _selectedShape.isPainted = true;
+                                  _isInteract = false;
+                                });
+                              }
+                            }
+                          }
+                        }
                       }
                     },
                     child: RepaintBoundary(
@@ -139,16 +170,18 @@ class _SvgViewScreenState extends State<SvgViewScreen> with SingleTickerProvider
   void _callBackIndexColorOfColorPicker(Color selectedColor) {
     setState(() {
       if (_getSelectedColor != selectedColor) {
+        _fadeController.reset();
         _getSelectedColor = selectedColor;
-        _selectedSvgShapes = _sortedShapes[selectedColor];
+        _selectedSvgShapes = _sortedShapes[selectedColor]!;
         for (final shape in _svgShapes) {
-          if (HexColor(shape.fill) == _getSelectedColor) {
+          if (shape.fill == _getSelectedColor) {
             shape.isPicked = true;
           } else {
             shape.isPicked = false;
           }
         }
         _isInteract = _getSelectedColor == null;
+        _fadeController.forward();
       }
       debugPrint('_callBackIndexColorOfColorPicker: $_getSelectedColor');
     });
@@ -157,12 +190,12 @@ class _SvgViewScreenState extends State<SvgViewScreen> with SingleTickerProvider
   Map<HexColor, List<ModelSvgShape>> _getSortedShapes(List<ModelSvgShape> shapes) {
     final sortedShapes = <HexColor, List<ModelSvgShape>>{};
     for (final shape in shapes) {
-      if (sortedShapes.containsKey(HexColor(shape.fill))) {
-        sortedShapes[HexColor(shape.fill)]!.add(shape);
-        shape.sortedId = sortedShapes.keys.toList().indexOf(HexColor(shape.fill));
+      if (sortedShapes.containsKey(shape.fill)) {
+        sortedShapes[shape.fill]!.add(shape);
+        shape.sortedId = sortedShapes.keys.toList().indexOf(shape.fill);
       } else {
-        sortedShapes[HexColor(shape.fill)] = [shape];
-        shape.sortedId = sortedShapes.keys.toList().indexOf(HexColor(shape.fill));
+        sortedShapes[shape.fill] = [shape];
+        shape.sortedId = sortedShapes.keys.toList().indexOf(shape.fill);
       }
     }
     return sortedShapes;

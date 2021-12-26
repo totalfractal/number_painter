@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:hexcolor/hexcolor.dart';
+import 'package:number_painter/models/model_svg_shape.dart';
 import 'package:patterns_canvas/patterns_canvas.dart';
 
 class CirclePainter extends CustomPainter {
   final ValueNotifier<Offset> notifier;
+  final ModelSvgShape selectedShape;
   final double radius;
   const CirclePainter({
     required this.notifier,
     required this.radius,
+    required this.selectedShape,
   }) : super(repaint: notifier);
   @override
   void paint(Canvas canvas, Size size) {
-    print('circle');
-    canvas.clipRect(Offset.zero & size);
+    canvas.clipPath(selectedShape.transformedPath!);
     canvas.drawCircle(
         notifier.value,
         radius,
         Paint()
-          ..color = Colors.red
+          ..color = selectedShape.fill
           ..style = PaintingStyle.fill);
   }
 

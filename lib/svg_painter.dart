@@ -84,19 +84,20 @@ class SvgPainter extends CustomPainter {
       if (shape.isPicked) {
         if (shape.isPainted) {
           _paint
-            ..color = HexColor(shape.fill)
+            ..color = shape.fill
             ..style = PaintingStyle.fill;
         } else {
           _addNumber(shape, shape.sortedId, size, canvas);
           final selected = path!.contains(notifier.value);
           selectedShape ??= selected ? shape : null;
-          if (selected) {
+          /* if (selected) {
+            
             debugPrint('_getSelectedColor and selectedShape.id: $selectedColor  ${selectedShape!.id}');
             _paint
               ..color = HexColor(shape.fill)
               ..style = PaintingStyle.fill;
             selectedShape.isPainted = true;
-          } else {
+          } else */ {
             _paint
               ..color = Colors.transparent
               ..style = PaintingStyle.fill;
@@ -105,7 +106,7 @@ class SvgPainter extends CustomPainter {
       } else {
         if (shape.isPainted) {
           _paint
-            ..color = HexColor(shape.fill)
+            ..color = shape.fill
             ..style = PaintingStyle.fill;
         } else {
           _paint
