@@ -28,24 +28,30 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   final List<XmlElement> stringSvgPathShapes = [];
   final Iterable<XmlElement> _stringSvgPathLines = [];
   final List<ModelSvgShape> _svgShapes = [];
-  List<ModelSvgShape> _selectedSvgShapes = [];
-  //Path _selectedPath = Path();
-  ModelSvgShape _selectedShape = ModelSvgShape.epmty();
   final List<ModelSvgLine> _svgLines = [];
   final Map<HexColor, List<ModelSvgShape>> _sortedShapes = {};
-  Color? _getSelectedColor;
-  bool _isInteract = false;
-  bool _isInit = false;
-
   late final AnimationController _fadeController = AnimationController(
-    duration: Duration(milliseconds: 1000),
+    duration: const Duration(milliseconds: 300),
     vsync: this,
   )..addListener(() => setState(() {}));
 
   late final AnimationController _fillController = AnimationController(
-    duration: Duration(milliseconds: 1000),
+    duration: const Duration(milliseconds: 1000),
     vsync: this,
   )..addListener(() => setState(() {}));
+
+  late final AnimationController _percentController = AnimationController(
+    duration: const Duration(milliseconds: 300),
+    vsync: this,
+  )..addListener(() => setState(() {}));
+
+  List<ModelSvgShape> _selectedSvgShapes = [];
+  //Path _selectedPath = Path();
+  ModelSvgShape _selectedShape = ModelSvgShape.epmty();
+
+  Color? _getSelectedColor;
+  bool _isInteract = false;
+  bool _isInit = false;
 
   @override
   void initState() {
@@ -86,7 +92,6 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                     ),
                   ),
                 ),
-                
                 SizedBox(
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height * 0.85,
@@ -115,6 +120,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                           for (final shape in _selectedSvgShapes) {
                             if (shape.transformedPath!.contains(e.localPosition)) {
                               if (_selectedShape != shape && !shape.isPainted) {
+                                _percentController.reset();
                                 setState(() {
                                   _selectedShape = shape;
                                   notifier.value = e.localPosition;
@@ -123,7 +129,9 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                                 _fillController.forward().then((_) {
                                   _selectedShape.isPainted = true;
                                   _isInteract = false;
+                                  _percentController.forward();
                                 });
+                                
                               }
                             }
                           }
@@ -158,6 +166,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
             height: MediaQuery.of(context).size.height * 0.14,
             width: MediaQuery.of(context).size.width,
             child: ColorPicker(
+              percentController: _percentController,
               sortedShapes: _sortedShapes,
               setSelectedColor: _callBackIndexColorOfColorPicker,
             ),

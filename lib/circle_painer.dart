@@ -14,13 +14,14 @@ class CirclePainter extends CustomPainter {
   }) : super(repaint: notifier);
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.clipPath(selectedShape.transformedPath!);
-    canvas.drawCircle(
-        notifier.value,
-        radius,
-        Paint()
-          ..color = selectedShape.fill
-          ..style = PaintingStyle.fill);
+    canvas
+      ..clipPath(selectedShape.transformedPath!)
+      ..drawCircle(
+          notifier.value,
+          radius,
+          Paint()
+            ..color = selectedShape.fill
+            ..style = PaintingStyle.fill,);
   }
 
   @override

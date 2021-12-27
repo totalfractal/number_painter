@@ -10,10 +10,12 @@ class FadePainter extends CustomPainter {
         super(repaint: animation);
   @override
   void paint(Canvas canvas, Size size) {
+    //canvas.drawColor(Colors.white, BlendMode.src);
+
     for (final shape in selectedShapes) {
       _paint
         ..color = _color.value!
-        ..blendMode = BlendMode.plus
+        ..blendMode = BlendMode.srcATop
         ..style = PaintingStyle.fill;
       canvas.drawPath(shape.transformedPath!, _paint);
     }
