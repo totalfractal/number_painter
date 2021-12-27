@@ -45,6 +45,8 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
     vsync: this,
   )..addListener(() => setState(() {}));
 
+  double oldPercent = 0.5;
+
   List<ModelSvgShape> _selectedSvgShapes = [];
   //Path _selectedPath = Path();
   ModelSvgShape _selectedShape = ModelSvgShape.epmty();
@@ -131,7 +133,6 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                                   _isInteract = false;
                                   _percentController.forward();
                                 });
-                                
                               }
                             }
                           }

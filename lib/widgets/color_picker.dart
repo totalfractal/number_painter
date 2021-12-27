@@ -16,7 +16,7 @@ class ColorPicker extends StatefulWidget {
 
 class _ColorPickerState extends State<ColorPicker> with SingleTickerProviderStateMixin {
   Color selectedColor = Colors.transparent;
-  double oldPercent = 0.0;
+  double oldPercent = 0.5;
 
   @override
   void initState() {
@@ -36,7 +36,9 @@ class _ColorPickerState extends State<ColorPicker> with SingleTickerProviderStat
         itemBuilder: (context, index) {
           final currentColor = widget.sortedShapes.keys.elementAt(index);
           final currentShapes = widget.sortedShapes.values.elementAt(index);
-          final percent = currentShapes.where((shape) => shape.isPainted).length / currentShapes.length;
+          final currentPercent = currentShapes.where((shape) => shape.isPainted).length / currentShapes.length;
+          oldPercent = (currentShapes.where((shape) => shape.isPainted).length - 1) / currentShapes.length;
+          
           return GestureDetector(
             onTap: () {
               setState(() {
@@ -56,7 +58,7 @@ class _ColorPickerState extends State<ColorPicker> with SingleTickerProviderStat
                         lineColor: currentColor,
                         width: 5.0,
                         oldPercent: oldPercent,
-                        currentPercent: percent,
+                        currentPercent: currentPercent,
                         animation: widget.percentController,
                       ),
                       child: Padding(

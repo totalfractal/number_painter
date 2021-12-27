@@ -17,7 +17,7 @@ class RadialPainter extends CustomPainter {
     required this.oldPercent,
     required this.currentPercent,
     required Animation<double> animation,
-  })  : _percent = Tween<double>(begin: oldPercent, end: currentPercent).animate(animation),
+  })  : _percent = Tween<double>(begin: 0, end: currentPercent).animate(animation),
         super(repaint: animation);
 
   @override
@@ -36,12 +36,18 @@ class RadialPainter extends CustomPainter {
 
     final center = Offset(size.width / 2, size.height / 2);
     final radius = min(size.width / 2, size.height / 2);
+    final oldSweepAngle = pi * 2 * oldPercent;
     final sweepAngle = pi * 2 * _percent.value;
-    print(_percent.value);
-    print(sweepAngle);
 
     canvas
       ..drawCircle(center, radius, bgLine)
+      ..drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        pi,
+        oldSweepAngle,
+        false,
+        completedLine,
+      )
       ..drawArc(
         Rect.fromCircle(center: center, radius: radius),
         pi,
@@ -49,6 +55,7 @@ class RadialPainter extends CustomPainter {
         false,
         completedLine,
       );
+    print(oldPercent);
   }
 
   @override
