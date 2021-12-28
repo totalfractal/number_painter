@@ -2,7 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
-class RadialPainter extends CustomPainter {
+class RadialProgressPainter extends CustomPainter {
   final Color bgColor;
   final Color lineColor;
   final double width;
@@ -10,14 +10,14 @@ class RadialPainter extends CustomPainter {
   final double currentPercent;
   final Animation<double> _percent;
 
-  RadialPainter({
+  RadialProgressPainter({
     required this.bgColor,
     required this.lineColor,
     required this.width,
     required this.oldPercent,
     required this.currentPercent,
     required Animation<double> animation,
-  })  : _percent = Tween<double>(begin: 0, end: currentPercent).animate(animation),
+  })  : _percent = Tween<double>(begin: oldPercent, end: currentPercent).animate(animation),
         super(repaint: animation);
 
   @override
@@ -36,7 +36,7 @@ class RadialPainter extends CustomPainter {
 
     final center = Offset(size.width / 2, size.height / 2);
     final radius = min(size.width / 2, size.height / 2);
-    final oldSweepAngle = pi * 2 * oldPercent;
+    //final oldSweepAngle = pi * 2 * oldPercent;
     final sweepAngle = pi * 2 * _percent.value;
 
     canvas
@@ -44,7 +44,7 @@ class RadialPainter extends CustomPainter {
       ..drawArc(
         Rect.fromCircle(center: center, radius: radius),
         pi,
-        oldSweepAngle,
+        pi * 2 * currentPercent,
         false,
         completedLine,
       )
@@ -55,7 +55,6 @@ class RadialPainter extends CustomPainter {
         false,
         completedLine,
       );
-    print(oldPercent);
   }
 
   @override

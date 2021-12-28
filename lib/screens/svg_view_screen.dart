@@ -6,7 +6,6 @@ import 'package:number_painter/circle_painer.dart';
 import 'package:number_painter/custom_clipper.dart';
 import 'package:number_painter/fade_painter.dart';
 import 'package:number_painter/widgets/color_picker.dart';
-import 'package:number_painter/widgets/coloring_paint.dart';
 import 'package:number_painter/main.dart';
 import 'package:number_painter/models/model_svg_line.dart';
 import 'package:number_painter/models/model_svg_shape.dart';
@@ -43,7 +42,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   late final AnimationController _percentController = AnimationController(
     duration: const Duration(milliseconds: 300),
     vsync: this,
-  )..addListener(() => setState(() {}));
+  );
 
   double oldPercent = 0.5;
 
@@ -150,6 +149,8 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                           sortedShapes: _sortedShapes,
                           selectedColor: _getSelectedColor,
                           isInit: _isInit,
+                          center: Offset(MediaQuery.of(context).size.width / 2,
+MediaQuery.of(context).size.height * 0.85 / 2,)
                         ),
                       ),
                     ),

@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:number_painter/models/model_svg_line.dart';
 import 'package:number_painter/models/model_svg_shape.dart';
+import 'dart:math' as math;
 
 Size _size = Size.infinite;
 
@@ -17,6 +18,7 @@ class SvgPainter extends CustomPainter {
   final bool isInit;
   final Paint _paint = Paint();
   Color? selectedColor;
+  final Offset center;
   //Size _size = Size.infinite;
   SvgPainter({
     required this.notifier,
@@ -26,6 +28,7 @@ class SvgPainter extends CustomPainter {
     required this.sortedShapes,
     required this.selectedColor,
     required this.isInit,
+    required this.center,
   }) : super(repaint: null);
 
   @override
@@ -97,7 +100,8 @@ class SvgPainter extends CustomPainter {
               ..color = HexColor(shape.fill)
               ..style = PaintingStyle.fill;
             selectedShape.isPainted = true;
-          } else */ {
+          } else */
+          {
             _paint
               ..color = Colors.transparent
               ..style = PaintingStyle.fill;
@@ -108,11 +112,11 @@ class SvgPainter extends CustomPainter {
           _paint
             ..color = shape.fill
             ..style = PaintingStyle.fill;
-        } else {
+        } /* else {
           _paint
             ..color = Colors.white
             ..style = PaintingStyle.fill;
-        }
+        } */
       }
       canvas.drawPath(path!, _paint);
     }
@@ -164,8 +168,8 @@ class SvgPainter extends CustomPainter {
     } */
 
     //TODO: попробовать отрисовывать один раз
-   
-      if (!isInit) {
+
+    if (!isInit) {
       for (final line in lines) {
         final path = line.transformedPath;
         if (path != null) {
@@ -173,8 +177,6 @@ class SvgPainter extends CustomPainter {
         }
       }
     }
-    
-    
 
     /*  if (selectedShape != null) {
       _paint
@@ -201,7 +203,41 @@ class SvgPainter extends CustomPainter {
     final path = shape.transformedPath;
     final metrics = path!.computeMetrics();
     final bounds = path.getBounds();
-    final txtSize = metrics.elementAt(0).length * 0.05;
+    var txtSize = 0.0;
+    for (final metric in metrics) {
+      txtSize += metric.length.toDouble();
+    }
+    txtSize *= 0.05;
+
+    debugPrint(center.toString());
+    debugPrint(bounds.center.toString());
+    // print(bounds.longestSide);
+    final radians = math.atan2(bounds.center.dy - center.dy, bounds.center.dx - center.dx);
+    debugPrint(radians.toString());
+    canvas.drawRect(
+        bounds,
+        Paint()
+          ..color = Colors.red
+          ..style = ui.PaintingStyle.stroke
+          ..strokeWidth = 1);
+    //print(metrics.elementAt(0));
+    canvas.drawLine(
+        bounds.bottomLeft,
+        bounds.topRight,
+        Paint()
+          ..color = Colors.blue
+          ..style = ui.PaintingStyle.stroke
+          ..strokeWidth = 1);
+    canvas.drawLine(
+        center,
+        bounds.center,
+        Paint()
+          ..color = Colors.green
+          ..style = ui.PaintingStyle.stroke
+          ..strokeWidth = 1);
+    //print(metrics.elementAt(0).getTangentForOffset(1));
+    //print(bounds.longestSide);
+    //final txtSize = bounds.width * bounds.height * 0.01;
     final textStyle = TextStyle(
       color: Colors.black,
       fontSize: txtSize,
