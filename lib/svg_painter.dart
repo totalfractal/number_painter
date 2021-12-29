@@ -214,14 +214,49 @@ class SvgPainter extends CustomPainter {
     // print(bounds.longestSide);
     final radians = math.atan2(bounds.center.dy - center.dy, bounds.center.dx - center.dx);
     debugPrint(radians.toString());
-    canvas.drawRect(
+    /* canvas.drawRect(
         bounds,
         Paint()
           ..color = Colors.red
           ..style = ui.PaintingStyle.stroke
-          ..strokeWidth = 1);
+          ..strokeWidth = 1); */
+    final textRect = Rect.fromCenter(center: bounds.center, width: txtSize + 3, height: txtSize + 3);
+    List<ui.Offset> greenPoints = [];
+    List<ui.Offset> redPoints = [];
+    for (var i = textRect.topLeft.dx; i < textRect.topRight.dx; i += 1.0) {
+      for (var j = textRect.bottomRight.dy; j > textRect.topRight.dy; j -= 1.0) {
+       // debugPrint('$i, $j');
+
+        if (path.contains(Offset(i, j))) {
+          //points.add(ColoredPoint(i, j, Colors.green));
+          greenPoints.add(ui.Offset(i, j));
+         
+          //debugPrint('yay!');
+        } else {
+          redPoints.add(ui.Offset(i, j));
+          //points.add(ColoredPoint(i, j, Colors.red));
+          //debugPrint('oooooops!');
+        }
+      }
+    }
+
+     canvas.drawPoints(ui.PointMode.points, greenPoints, Paint()..color = Colors.green..strokeCap = ui.StrokeCap.round..strokeWidth = 1);
+     canvas.drawPoints(ui.PointMode.points, redPoints, Paint()..color = Colors.red..strokeCap = ui.StrokeCap.round..strokeWidth = 1);
+
+     //canvas.drawPoints(ui.PointMode.points, greenPoints, Paint()..color = Colors.pink);
+     
+
+
+    //canvas.drawPoints(ui.PointMode.points, points, paint)
+    canvas.drawRect(
+        textRect,
+        Paint()
+          ..color = Colors.orange
+          ..style = ui.PaintingStyle.stroke
+          ..strokeWidth = 0.5);
+
     //print(metrics.elementAt(0));
-    canvas.drawLine(
+    /* canvas.drawLine(
         bounds.bottomLeft,
         bounds.topRight,
         Paint()
@@ -234,7 +269,7 @@ class SvgPainter extends CustomPainter {
         Paint()
           ..color = Colors.green
           ..style = ui.PaintingStyle.stroke
-          ..strokeWidth = 1);
+          ..strokeWidth = 1); */
     //print(metrics.elementAt(0).getTangentForOffset(1));
     //print(bounds.longestSide);
     //final txtSize = bounds.width * bounds.height * 0.01;
@@ -254,9 +289,14 @@ class SvgPainter extends CustomPainter {
         minWidth: 0,
         maxWidth: size.width,
       )
-      ..paint(canvas, bounds.center);
+      ..paint(canvas, ui.Offset(bounds.center.dx - txtSize / 2, bounds.center.dy - txtSize / 2));
   }
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
+}
+
+class ColoredPoint extends ui.Offset {
+  final Color color;
+  ColoredPoint(double x, double y, this.color) : super(x, y);
 }
