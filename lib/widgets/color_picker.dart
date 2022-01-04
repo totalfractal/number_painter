@@ -6,7 +6,7 @@ import 'package:number_painter/radial_painter.dart';
 import 'package:number_painter/radial_progress_painter.dart';
 
 class ColorPicker extends StatefulWidget {
-  final Map<HexColor, List<ModelSvgShape>> sortedShapes;
+  final Map<Color, List<ModelSvgShape>> sortedShapes;
   final ValueChanged<Color> setSelectedColor;
   final AnimationController percentController;
 

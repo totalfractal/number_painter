@@ -28,7 +28,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   final Iterable<XmlElement> _stringSvgPathLines = [];
   final List<ModelSvgShape> _svgShapes = [];
   final List<ModelSvgLine> _svgLines = [];
-  final Map<HexColor, List<ModelSvgShape>> _sortedShapes = {};
+  final Map<Color, List<ModelSvgShape>> _sortedShapes = {};
   late final AnimationController _fadeController = AnimationController(
     duration: const Duration(milliseconds: 300),
     vsync: this,
@@ -57,16 +57,34 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   @override
   void initState() {
     super.initState();
-    stringSvgPathShapes.addAll((XmlDocument.parse(stringSvg).findAllElements('path')).toList());
-    for (final itemPath in stringSvgPathShapes) {
-      if (itemPath.toString().contains('fill')) {
-        _svgShapes.add(ModelSvgShape.fromElement(itemPath));
-      }
-      if (itemPath.toString().contains('stroke')) {
-        _svgLines.add(ModelSvgLine.fromElement(itemPath));
-      }
-    }
-    _sortedShapes.addAll(_getSortedShapes(_svgShapes));
+    DefaultAssetBundle.of(context).loadString('assets/landscape.svg').then((value) {
+      setState(() {
+        stringSvgPathShapes.addAll((XmlDocument.parse(value).findAllElements('path')).toList());
+        final canvasSize = Size(
+          MediaQuery.of(context).size.width,
+          MediaQuery.of(context).size.height * 0.85,
+        );
+        debugPrint(canvasSize.toString());
+        final fs = applyBoxFit(BoxFit.contain, const Size(580, 260), canvasSize);
+        final r = Alignment.center.inscribe(fs.destination, Offset.zero & canvasSize);
+        //final r = Alignment.center.inscribe(canvasSize, Offset.zero & canvasSize);
+        final matrix = Matrix4.translationValues(r.left, r.top, 0)..scale(fs.destination.width / fs.source.width);
+        for (final itemPath in stringSvgPathShapes) {
+          if (itemPath.toString().contains('fill')) {
+            _svgShapes.add(ModelSvgShape.fromElement(itemPath)..transform(matrix));
+          }
+          if (itemPath.toString().contains('stroke')) {
+            _svgLines.add(ModelSvgLine.fromElement(itemPath)..transform(matrix));
+          }
+        }
+      });
+      _sortedShapes.addAll(_setSortedShapes(_svgShapes));
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
   }
 
   @override
@@ -79,7 +97,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
           InteractiveViewer(
             //onInteractionStart: !_isInteract ? (_) => setState(() => _isInteract = true) : null,
             //onInteractionEnd: (_) => setState(() => _isInteract = _getSelectedColor == null ),
-            maxScale: 10,
+            maxScale: 100,
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -149,8 +167,10 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                           sortedShapes: _sortedShapes,
                           selectedColor: _getSelectedColor,
                           isInit: _isInit,
-                          center: Offset(MediaQuery.of(context).size.width / 2,
-MediaQuery.of(context).size.height * 0.85 / 2,)
+                          center: Offset(
+                            MediaQuery.of(context).size.width / 2,
+                            MediaQuery.of(context).size.height * 0.85 / 2,
+                          ),
                         ),
                       ),
                     ),
@@ -198,17 +218,97 @@ MediaQuery.of(context).size.height * 0.85 / 2,)
     });
   }
 
-  Map<HexColor, List<ModelSvgShape>> _getSortedShapes(List<ModelSvgShape> shapes) {
-    final sortedShapes = <HexColor, List<ModelSvgShape>>{};
+  Map<Color, List<ModelSvgShape>> _setSortedShapes(List<ModelSvgShape> shapes) {
+    debugPrint(DateTime.now().toString());
+    final sortedShapes = <Color, List<ModelSvgShape>>{};
     for (final shape in shapes) {
       if (sortedShapes.containsKey(shape.fill)) {
         sortedShapes[shape.fill]!.add(shape);
-        shape.sortedId = sortedShapes.keys.toList().indexOf(shape.fill);
+        shape.setNumberProperties(sortedShapes.keys.toList().indexOf(shape.fill));
+        //shape.number = PainterNumber(dx: 0, dy: 0, number: sortedShapes.keys.toList().indexOf(shape.fill), size: 0);
+        //await _setNumberProperties(shape, sortedShapes.keys.toList().indexOf(shape.fill));
+        //shape.sortedId = sortedShapes.keys.toList().indexOf(shape.fill);
       } else {
         sortedShapes[shape.fill] = [shape];
-        shape.sortedId = sortedShapes.keys.toList().indexOf(shape.fill);
+        shape.setNumberProperties(sortedShapes.keys.toList().indexOf(shape.fill));
+        //shape.number = PainterNumber(dx: 0, dy: 0, number: sortedShapes.keys.toList().indexOf(shape.fill), size: 0);
+        //await _setNumberProperties(shape, sortedShapes.keys.toList().indexOf(shape.fill));
+        //shape.sortedId = sortedShapes.keys.toList().indexOf(shape.fill);
       }
     }
+    debugPrint(DateTime.now().toString());
     return sortedShapes;
+  }
+
+  Future<void> _setNumberProperties(ModelSvgShape shape, int number) async {
+    final path = shape.transformedPath;
+    final metrics = path!.computeMetrics();
+    final bounds = path.getBounds();
+    var txtSize = metrics.elementAt(0).length * .1;
+    /* for (final metric in metrics) {
+      txtSize += metric.length.toDouble();
+    }
+    txtSize *= 0.05; */
+
+    // print(bounds.longestSide);
+
+    var textRect = Rect.fromCenter(center: bounds.center - Offset(txtSize / 5, -txtSize / 8), width: txtSize / 2, height: txtSize);
+    var isInclude = false;
+
+    var txtOffset = bounds.center;
+    var x = bounds.topLeft.dx;
+    var y = bounds.bottomRight.dy;
+    do {
+      for (var dx = x; dx < bounds.topRight.dx; dx += 1.0) {
+        for (var dy = y; dy > bounds.topRight.dy; dy -= 1.0) {
+          if (path.contains(Offset(dx.toDouble(), dy.toDouble()))) {
+            textRect = Rect.fromCenter(
+                center: Offset(dx, dy) - Offset(txtSize / 5, -txtSize / 8), width: (txtSize / 2) + (txtSize / 2), height: txtSize + txtSize / 2);
+            for (var i = textRect.topLeft.dx; i < textRect.topRight.dx; i += 1.0) {
+              for (var j = textRect.bottomRight.dy; j > textRect.topRight.dy; j -= 1.0) {
+                if (path.contains(Offset(i, j))) {
+                  isInclude = true;
+                } else {
+                  isInclude = false;
+                  break;
+                }
+              }
+              if (!isInclude) {
+                break;
+              }
+            }
+            if (!isInclude) {
+              continue;
+            } else {
+              x = dx;
+              y = dy;
+              break;
+            }
+          } else {
+            isInclude = false;
+            continue;
+          }
+        }
+        if (!isInclude) {
+          continue;
+        } else {
+          /* debugPrint('include size: ${txtSize.toString()}');
+          debugPrint('center: ${bounds.center}');
+          debugPrint('included: $x,$y');
+          txtOffset = Offset(x, y); */
+          break;
+        }
+      }
+      if (!isInclude) {
+        //debugPrint('not include size: ${txtSize.toString()}');
+        txtSize -= 0.5;
+        if (txtSize <= 0.1) {
+          debugPrint('too small!');
+          txtSize = 2;
+          isInclude = true;
+        }
+      }
+    } while (!isInclude);
+    shape.number = PainterNumber(dx: x, dy: y, number: number, size: txtSize);
   }
 }

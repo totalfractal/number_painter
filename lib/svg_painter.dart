@@ -13,7 +13,7 @@ class SvgPainter extends CustomPainter {
   final List<ModelSvgShape> shapes;
   List<ModelSvgShape>? selectedShapes;
   final List<ModelSvgLine> lines;
-  final Map<HexColor, List<ModelSvgShape>> sortedShapes;
+  final Map<Color, List<ModelSvgShape>> sortedShapes;
   final ValueNotifier<Offset> notifier;
   final bool isInit;
   final Paint _paint = Paint();
@@ -35,6 +35,7 @@ class SvgPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (!isInit) {
       if (size != _size) {
+        debugPrint(size.toString());
         _size = size;
         final fs = applyBoxFit(BoxFit.contain, const Size(3000, 3000), size);
         final r = Alignment.center.inscribe(fs.destination, Offset.zero & size);
@@ -51,37 +52,6 @@ class SvgPainter extends CustomPainter {
     canvas.clipRect(Offset.zero & size);
 
     ModelSvgShape? selectedShape;
-    /* if (selectedShapes != null) {
-      for (final selectedShape in selectedShapes!) {
-        final path = selectedShape.transformedPath;
-        _paint
-          ..color = Colors.transparent
-          ..style = PaintingStyle.fill;
-        canvas.drawPath(path!, _paint);
-      }
-      for (var i = 0; i < sortedShapes.entries.length; i++) {
-        final sortedPair = sortedShapes.entries.elementAt(i);
-
-        for (final shape in sortedPair.value) {
-          final path = shape.transformedPath;
-          _addNumber(shape, i, size, canvas);
-          _paint
-            ..color = HexColor("#1A171B")
-            ..strokeWidth = 0
-            ..style = PaintingStyle.stroke;
-
-          canvas.drawPath(path!, _paint);
-          if (sortedPair.key != selectedColor) {
-            if (!shape.isPainted) {
-              _paint
-                ..color = Colors.white
-                ..style = PaintingStyle.fill;
-              canvas.drawPath(path!, _paint);
-            }
-          }
-        }
-      }
-    } */
     for (final shape in shapes) {
       final path = shape.transformedPath;
       if (shape.isPicked) {
@@ -90,7 +60,7 @@ class SvgPainter extends CustomPainter {
             ..color = shape.fill
             ..style = PaintingStyle.fill;
         } else {
-          _addNumber(shape, shape.sortedId, size, canvas);
+          //_addNumber(shape, shape.sortedId, size, canvas);
           final selected = path!.contains(notifier.value);
           selectedShape ??= selected ? shape : null;
           /* if (selected) {
@@ -112,60 +82,40 @@ class SvgPainter extends CustomPainter {
           _paint
             ..color = shape.fill
             ..style = PaintingStyle.fill;
-        } /* else {
+        } else {
           _paint
             ..color = Colors.white
             ..style = PaintingStyle.fill;
-        } */
+        }
       }
       canvas.drawPath(path!, _paint);
+
+      /* canvas.drawRect(
+        textRect,
+        Paint()
+          ..color = Colors.orange
+          ..style = ui.PaintingStyle.stroke
+          ..strokeWidth = 0.5,); */
+
+      final textStyle = TextStyle(
+        color: Colors.black,
+        fontSize: shape.number.size,
+      );
+      final textSpan = TextSpan(
+        text: '${shape.number.number + 1}',
+        style: textStyle,
+      );
+      TextPainter(
+        textAlign: ui.TextAlign.center,
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+      )
+        ..layout(
+          minWidth: 0,
+          maxWidth: size.width,
+        )
+        ..paint(canvas, ui.Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
     }
-    /* for (var i = 0; i < sortedShapes.entries.length; i++) {
-      final sortedPair = sortedShapes.entries.elementAt(i);
-      for (final shape in sortedPair.value) {
-        final path = shape.transformedPath;
-        if (shape.isPainted) {
-          _paint
-            ..color = HexColor(shape.fill)
-            ..style = PaintingStyle.fill;
-          canvas.drawPath(path!, _paint);
-        }
-
-        final selected = path!.contains(notifier.value);
-        selectedShape ??= selected ? shape : null;
-
-        if (selected) {
-          debugPrint("_getSelectedColor and selectedShape.id: $selectedColor  ${selectedShape!.id}");
-          _paint
-            ..color = HexColor(shape.fill)
-            ..style = PaintingStyle.fill;
-          canvas.drawPath(path, _paint);
-          selectedShape.isPainted = true;
-        }
-        if (!shape.isPainted) {
-          final metrics = path.computeMetrics();
-          final bounds = path.getBounds();
-          final txtSize = metrics.elementAt(0).length * 0.05;
-          final textStyle = TextStyle(
-            color: Colors.black,
-            fontSize: txtSize,
-          );
-          final textSpan = TextSpan(
-            text: '${i + 1}',
-            style: textStyle,
-          );
-          TextPainter(
-            text: textSpan,
-            textDirection: TextDirection.ltr,
-          )
-            ..layout(
-              minWidth: 0,
-              maxWidth: size.width,
-            )
-            ..paint(canvas, bounds.center);
-        }
-      }
-    } */
 
     //TODO: попробовать отрисовывать один раз
 
@@ -177,111 +127,93 @@ class SvgPainter extends CustomPainter {
         }
       }
     }
-
-    /*  if (selectedShape != null) {
-      _paint
-        ..color = Colors.black
-        ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 12)
-        ..style = PaintingStyle.fill;
-      canvas.drawPath(selectedShape.transformedPath!, _paint);
-      _paint.maskFilter = null;
-
-      final builder = ui.ParagraphBuilder(ui.ParagraphStyle(
-        fontSize: 40,
-        fontFamily: 'Roboto',
-      ))
-        ..pushStyle(ui.TextStyle(
-          color: Colors.black,
-        ))
-        ..addText(selectedShape.id);
-      final paragraph = builder.build()..layout(ui.ParagraphConstraints(width: size.width));
-      canvas.drawParagraph(paragraph, notifier.value.translate(0, 0));
-    } */
   }
 
-  void _addNumber(ModelSvgShape shape, int i, ui.Size size, ui.Canvas canvas) {
+  void _addNumber(ModelSvgShape shape, int index, ui.Size size, ui.Canvas canvas) {
     final path = shape.transformedPath;
     final metrics = path!.computeMetrics();
     final bounds = path.getBounds();
-    var txtSize = 0.0;
-    for (final metric in metrics) {
+    var txtSize = metrics.elementAt(0).length * .1;
+    /* for (final metric in metrics) {
       txtSize += metric.length.toDouble();
     }
-    txtSize *= 0.05;
+    txtSize *= 0.05; */
 
-    debugPrint(center.toString());
-    debugPrint(bounds.center.toString());
     // print(bounds.longestSide);
-    final radians = math.atan2(bounds.center.dy - center.dy, bounds.center.dx - center.dx);
-    debugPrint(radians.toString());
-    /* canvas.drawRect(
-        bounds,
-        Paint()
-          ..color = Colors.red
-          ..style = ui.PaintingStyle.stroke
-          ..strokeWidth = 1); */
-    final textRect = Rect.fromCenter(center: bounds.center, width: txtSize + 3, height: txtSize + 3);
-    List<ui.Offset> greenPoints = [];
-    List<ui.Offset> redPoints = [];
-    for (var i = textRect.topLeft.dx; i < textRect.topRight.dx; i += 1.0) {
-      for (var j = textRect.bottomRight.dy; j > textRect.topRight.dy; j -= 1.0) {
-       // debugPrint('$i, $j');
 
-        if (path.contains(Offset(i, j))) {
-          //points.add(ColoredPoint(i, j, Colors.green));
-          greenPoints.add(ui.Offset(i, j));
-         
-          //debugPrint('yay!');
+    var textRect = Rect.fromCenter(center: bounds.center - ui.Offset(txtSize / 5, -txtSize / 8), width: txtSize / 2, height: txtSize);
+    var isInclude = false;
+
+    var txtOffset = bounds.center;
+    var x = bounds.topLeft.dx;
+    var y = bounds.bottomRight.dy;
+    do {
+      for (var dx = x; dx < bounds.topRight.dx; dx += 1.0) {
+        for (var dy = y; dy > bounds.topRight.dy; dy -= 1.0) {
+          if (path.contains(Offset(dx.toDouble(), dy.toDouble()))) {
+            textRect = Rect.fromCenter(
+                center: ui.Offset(dx, dy) - ui.Offset(txtSize / 5, -txtSize / 8),
+                width: (txtSize / 2) + (txtSize / 2),
+                height: txtSize + txtSize / 2);
+            for (var i = textRect.topLeft.dx; i < textRect.topRight.dx; i += 1.0) {
+              for (var j = textRect.bottomRight.dy; j > textRect.topRight.dy; j -= 1.0) {
+                if (path.contains(Offset(i, j))) {
+                  isInclude = true;
+                } else {
+                  isInclude = false;
+                  break;
+                }
+              }
+              if (!isInclude) {
+                break;
+              }
+            }
+            if (!isInclude) {
+              continue;
+            } else {
+              x = dx;
+              y = dy;
+              break;
+            }
+          } else {
+            isInclude = false;
+            continue;
+          }
+        }
+        if (!isInclude) {
+          continue;
         } else {
-          redPoints.add(ui.Offset(i, j));
-          //points.add(ColoredPoint(i, j, Colors.red));
-          //debugPrint('oooooops!');
+          /* debugPrint('include size: ${txtSize.toString()}');
+          debugPrint('center: ${bounds.center}');
+          debugPrint('included: $x,$y'); */
+          txtOffset = ui.Offset(x, y);
+          break;
         }
       }
-    }
+      if (!isInclude) {
+        //debugPrint('not include size: ${txtSize.toString()}');
+        txtSize -= 0.5;
+      }
+    } while (!isInclude);
 
-     canvas.drawPoints(ui.PointMode.points, greenPoints, Paint()..color = Colors.green..strokeCap = ui.StrokeCap.round..strokeWidth = 1);
-     canvas.drawPoints(ui.PointMode.points, redPoints, Paint()..color = Colors.red..strokeCap = ui.StrokeCap.round..strokeWidth = 1);
-
-     //canvas.drawPoints(ui.PointMode.points, greenPoints, Paint()..color = Colors.pink);
-     
-
-
-    //canvas.drawPoints(ui.PointMode.points, points, paint)
     canvas.drawRect(
-        textRect,
-        Paint()
-          ..color = Colors.orange
-          ..style = ui.PaintingStyle.stroke
-          ..strokeWidth = 0.5);
+      textRect,
+      Paint()
+        ..color = Colors.orange
+        ..style = ui.PaintingStyle.stroke
+        ..strokeWidth = 0.5,
+    );
 
-    //print(metrics.elementAt(0));
-    /* canvas.drawLine(
-        bounds.bottomLeft,
-        bounds.topRight,
-        Paint()
-          ..color = Colors.blue
-          ..style = ui.PaintingStyle.stroke
-          ..strokeWidth = 1);
-    canvas.drawLine(
-        center,
-        bounds.center,
-        Paint()
-          ..color = Colors.green
-          ..style = ui.PaintingStyle.stroke
-          ..strokeWidth = 1); */
-    //print(metrics.elementAt(0).getTangentForOffset(1));
-    //print(bounds.longestSide);
-    //final txtSize = bounds.width * bounds.height * 0.01;
     final textStyle = TextStyle(
       color: Colors.black,
       fontSize: txtSize,
     );
     final textSpan = TextSpan(
-      text: '${i + 1}',
+      text: '${index + 1}',
       style: textStyle,
     );
     TextPainter(
+      textAlign: ui.TextAlign.center,
       text: textSpan,
       textDirection: TextDirection.ltr,
     )
@@ -289,7 +221,7 @@ class SvgPainter extends CustomPainter {
         minWidth: 0,
         maxWidth: size.width,
       )
-      ..paint(canvas, ui.Offset(bounds.center.dx - txtSize / 2, bounds.center.dy - txtSize / 2));
+      ..paint(canvas, ui.Offset(txtOffset.dx - txtSize / 2, txtOffset.dy - txtSize / 2));
   }
 
   @override

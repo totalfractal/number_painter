@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -12,7 +13,7 @@ class ModelSvgLine {
   final double? strokeMiterlimit;
   final String? strokeLinecap;
   final Paint paint;
-  final List<ModelSvgLine> listModelSvgFile;
+  //final List<ModelSvgLine> listModelSvgFile;
   final Path _path;
   Path? transformedPath;
   ModelSvgLine._(
@@ -23,13 +24,17 @@ class ModelSvgLine {
     this.strokeMiterlimit,
     this.strokeLinecap,
     this.paint,
-    this.listModelSvgFile,
+    //this.listModelSvgFile,
   ) : _path = parseSvgPathData(d);
 
   factory ModelSvgLine.fromElement(XmlElement svgElement) {
     final paint = Paint()
       ..color = HexColor('#1A171B')
-      ..strokeWidth = svgElement.getAttribute('stroke-width') != null ? double.tryParse(svgElement.getAttribute('stroke-width')!) != null ? -(1 - double.parse(svgElement.getAttribute('stroke-width')!)) : 0 : 0
+      ..strokeWidth = svgElement.getAttribute('stroke-width') != null
+          ? double.tryParse(svgElement.getAttribute('stroke-width')!) != null
+              ?  double.parse(svgElement.getAttribute('stroke-width')!)
+              : 0
+          : 0
       ..style = PaintingStyle.stroke
       ..strokeMiterLimit =
           svgElement.getAttribute('stroke-miterlimit') != null ? double.tryParse(svgElement.getAttribute('stroke-miterlimit')!) ?? 0 : 0
@@ -43,10 +48,12 @@ class ModelSvgLine {
       svgElement.getAttribute('stroke-miterlimit') != null ? double.tryParse(svgElement.getAttribute('stroke-miterlimit')!) ?? 0 : 0,
       svgElement.getAttribute('stroke-linecap'),
       paint,
-      svgElement.findElements('path').map<ModelSvgLine>((e) => ModelSvgLine.fromElement(e)).toList(),
+      //svgElement.findElements('path').map<ModelSvgLine>((e) => ModelSvgLine.fromElement(e)).toList(),
     );
   }
 
   /// transforms a [_path] into [transformedPath] using given [matrix]
   void transform(Matrix4 matrix) => transformedPath = _path.transform(matrix.storage);
 }
+
+

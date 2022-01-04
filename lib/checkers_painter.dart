@@ -6,12 +6,9 @@ class ShapePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     canvas.clipRect(Offset.zero & size);
-    final Pattern pattern = Checkers(bgColor: Colors.grey[300]!, fgColor: Colors.grey[500]!, featuresCount: 100);
-    pattern.paintOnCanvas(canvas, size);
+    Checkers(bgColor: Colors.grey[300]!, fgColor: Colors.grey[500]!, featuresCount: 100).paintOnCanvas(canvas, size);
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return false;
-  }
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
