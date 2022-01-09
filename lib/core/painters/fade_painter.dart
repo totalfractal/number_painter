@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:number_painter/core/models/model_svg_shape.dart';
+import 'package:number_painter/core/models/svg_models/model_svg_shape.dart';
 
 class FadePainter extends CustomPainter {
   final List<ModelSvgShape> selectedShapes;
@@ -10,8 +10,7 @@ class FadePainter extends CustomPainter {
         super(repaint: animation);
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.saveLayer(null, Paint());
-    canvas.drawColor(Colors.white, BlendMode.src);
+    canvas..saveLayer(null, Paint())..drawColor(Colors.white, BlendMode.src);
 
     for (final shape in selectedShapes) {
       _paint

@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -44,6 +45,7 @@ class SvgPainter extends CustomPainter {
           _paint
             ..color = shape.fill
             ..style = PaintingStyle.fill;
+            canvas.drawPath(path!, _paint);
         } else {
           //_addNumber(shape, shape.sortedId, size, canvas);
           final selected = path!.contains(notifier.value);
@@ -54,24 +56,29 @@ class SvgPainter extends CustomPainter {
               ..color = shape.fill
               ..style = PaintingStyle.fill;
             selectedShape.isPainted = true;
-          } else {
+            canvas.drawPath(path, _paint);
+          } /* else {
             _paint
               ..color = Colors.transparent
               ..style = PaintingStyle.fill;
-          }
+              canvas.drawPath(path, _paint);
+          } */
         }
       } else {
         if (shape.isPainted) {
           _paint
             ..color = shape.fill
             ..style = PaintingStyle.fill;
-        } else {
+            canvas.drawPath(path!, _paint);
+        } /* else {
           _paint
             ..color = Colors.white
             ..style = PaintingStyle.fill;
-        }
+            canvas.drawPath(path!, _paint);
+        } */
+        
       }
-      canvas.drawPath(path!, _paint);
+      
 
       
     }

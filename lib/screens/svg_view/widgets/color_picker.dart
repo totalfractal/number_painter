@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:number_painter/core/models/model_svg_shape.dart';
-import 'package:number_painter/core/models/painters/radial_painter.dart';
-import 'package:number_painter/core/models/painters/radial_progress_painter.dart';
+import 'package:number_painter/core/models/svg_models/model_svg_shape.dart';
+import 'package:number_painter/core/painters/radial_painter.dart';
+import 'package:number_painter/core/painters/radial_progress_painter.dart';
 
 class ColorPicker extends StatefulWidget {
   final Map<Color, List<ModelSvgShape>> sortedShapes;

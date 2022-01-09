@@ -22,6 +22,11 @@ class ModelSvgShape {
     //this.listModelSvgFile,
   ) : _path = parseSvgPathData(d);
 
+  @override
+  String toString() {
+    return id;
+  }
+
   factory ModelSvgShape.fromElement(XmlElement svgElement) {
     return ModelSvgShape._(
       svgElement.getAttribute('id').toString(),
@@ -43,7 +48,7 @@ class ModelSvgShape {
   /// transforms a [_path] into [transformedPath] using given [matrix]
   void transform(Matrix4 matrix) => transformedPath = _path.transform(matrix.storage);
 
-  void setNumberProperties(int num){
+  void setNumberProperties(int num) {
     final path = transformedPath;
     final metrics = path!.computeMetrics();
     final bounds = path.getBounds();

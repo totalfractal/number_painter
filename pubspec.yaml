@@ -41,8 +41,9 @@ dependencies:
   flutter_svg: ^0.23.0+1
   surf_lint_rules: ^1.4.1
   patterns_canvas: ^0.3.5
-  zoom_widget: ^0.2.1
-  photo_view: ^0.13.0
+  sqflite: ^2.0.1
+  path_provider: ^2.0.8
+  path: ^1.8.0
 
 dev_dependencies:
   flutter_test:
