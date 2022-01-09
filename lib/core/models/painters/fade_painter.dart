@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:number_painter/models/model_svg_shape.dart';
+import 'package:number_painter/core/models/model_svg_shape.dart';
 
 class FadePainter extends CustomPainter {
   final List<ModelSvgShape> selectedShapes;

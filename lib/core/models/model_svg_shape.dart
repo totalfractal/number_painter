@@ -49,7 +49,7 @@ class ModelSvgShape {
     final bounds = path.getBounds();
     var txtSize = metrics.elementAt(0).length * .1;
     /* for (final metric in metrics) {
-      txtSize += metric.length.toDouble();
+      txtSize += metric.length.toDouble();q
     }
     txtSize *= 0.05; */
 
@@ -95,10 +95,10 @@ class ModelSvgShape {
         if (!isInclude) {
           continue;
         } else {
-          /* debugPrint('include size: ${txtSize.toString()}');
-          debugPrint('center: ${bounds.center}');
-          debugPrint('included: $x,$y');
-          txtOffset = Offset(x, y); */
+          debugPrint('include size: ${txtSize.toString()}');
+          /* debugPrint('center: ${bounds.center}');
+          debugPrint('included: $x,$y'); */
+          txtOffset = Offset(x, y);
           break;
         }
       }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:number_painter/models/model_svg_shape.dart';
+import 'package:number_painter/core/models/model_svg_shape.dart';
 import 'package:patterns_canvas/patterns_canvas.dart';
 
 class CirclePainter extends CustomPainter {

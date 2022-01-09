@@ -261,6 +261,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.4.0"
+  photo_view:
+    dependency: "direct main"
+    description:
+      name: photo_view
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.13.0"
   pub_semver:
     dependency: transitive
     description:
@@ -357,6 +364,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.1.0"
+  zoom_widget:
+    dependency: "direct main"
+    description:
+      name: zoom_widget
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.1"
 sdks:
   dart: ">=2.14.0 <3.0.0"
   flutter: ">=2.0.1"
