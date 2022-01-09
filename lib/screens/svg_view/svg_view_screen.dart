@@ -963,17 +963,21 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                       SizedBox(
                         width: MediaQuery.of(context).size.width,
                         height: MediaQuery.of(context).size.height * 0.85,
-                        child: CustomPaint(
-                          painter: FadePainter(animation: _fadeController, selectedShapes: _selectedSvgShapes),
+                        child: RepaintBoundary(
+                          child: CustomPaint(
+                            painter: FadePainter(animation: _fadeController, selectedShapes: _selectedSvgShapes),
+                          ),
                         ),
                       ),
                       if (_selectedShape.transformedPath != null)
                         SizedBox(
                           width: MediaQuery.of(context).size.width,
                           height: MediaQuery.of(context).size.height * 0.85,
-                          child: CustomPaint(
-                            
-                            painter: CirclePainter(notifier: _notifier, radius: _fillController.value * 100, selectedShape: _selectedShape),
+                          child: RepaintBoundary(
+                            child: CustomPaint(
+                              
+                              painter: CirclePainter(notifier: _notifier, radius: _fillController.value * 100, selectedShape: _selectedShape),
+                            ),
                           ),
                         ),
                       SizedBox(
