@@ -9,18 +9,18 @@ import 'dart:math' as math;
 Size _size = Size.infinite;
 
 //TODO: разобраться с инкапсуляцией
-class SvgPainter extends CustomPainter {
-  final List<ModelSvgShape> shapes;
-  List<ModelSvgShape>? selectedShapes;
-  final List<ModelSvgLine> lines;
-  final Map<Color, List<ModelSvgShape>> sortedShapes;
+class ShapePainter extends CustomPainter {
+  final List<SvgShapeModel> shapes;
+  List<SvgShapeModel>? selectedShapes;
+  final List<SvgLineModel> lines;
+  final Map<Color, List<SvgShapeModel>> sortedShapes;
   final ValueNotifier<Offset> notifier;
   final bool isInit;
   final Paint _paint = Paint();
   Color? selectedColor;
   final Offset center;
   //Size _size = Size.infinite;
-  SvgPainter({
+  ShapePainter({
     required this.notifier,
     required this.shapes,
     required this.selectedShapes,
@@ -37,7 +37,7 @@ class SvgPainter extends CustomPainter {
 
     canvas.clipRect(Offset.zero & size);
 
-    ModelSvgShape? selectedShape;
+    SvgShapeModel? selectedShape;
     for (final shape in shapes) {
       final path = shape.transformedPath;
       if (shape.isPicked) {
@@ -50,14 +50,14 @@ class SvgPainter extends CustomPainter {
           //_addNumber(shape, shape.sortedId, size, canvas);
           final selected = path!.contains(notifier.value);
           selectedShape ??= selected ? shape : null;
-          if (selected) {
+          /* if (selected) {
             debugPrint('_getSelectedColor and selectedShape.id: $selectedColor  ${selectedShape!.id}');
             _paint
               ..color = shape.fill
               ..style = PaintingStyle.fill;
             selectedShape.isPainted = true;
             canvas.drawPath(path, _paint);
-          } /* else {
+          }  *//* else {
             _paint
               ..color = Colors.transparent
               ..style = PaintingStyle.fill;

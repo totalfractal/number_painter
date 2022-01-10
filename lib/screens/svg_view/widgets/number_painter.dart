@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:number_painter/core/models/svg_models/model_svg_shape.dart';
 
 class ShapeStrokePainter extends CustomPainter {
-  final List<ModelSvgShape> shapes;
+  final List<SvgShapeModel> shapes;
 
   ShapeStrokePainter({required this.shapes});
   @override

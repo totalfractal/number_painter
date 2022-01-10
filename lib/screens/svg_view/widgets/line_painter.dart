@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:number_painter/core/models/svg_models/model_svg_line.dart';
 
 class LinePainter extends CustomPainter {
-  final List<ModelSvgLine> lines;
+  final List<SvgLineModel> lines;
 
   const LinePainter({required this.lines});
   @override
@@ -36,8 +36,8 @@ class LinePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 
   //сортировка линий по размеру
-  Map<double, List<ModelSvgLine>> _sortLines() {
-    final sortedLines = <double, List<ModelSvgLine>>{};
+  Map<double, List<SvgLineModel>> _sortLines() {
+    final sortedLines = <double, List<SvgLineModel>>{};
     for (final line in lines) {
       if (sortedLines.containsKey(line.strokeWidth)) {
         sortedLines[line.strokeWidth]!.add(line);

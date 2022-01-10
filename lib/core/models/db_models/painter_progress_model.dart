@@ -1,24 +1,40 @@
+import 'dart:convert';
 import 'package:number_painter/core/models/svg_models/model_svg_shape.dart';
 
 class PainterProgressModel {
   static const table = 'Painters';
 
   final String id;
-  final List<ModelSvgShape> shapes;
+  String shapes;
   bool isCompleted; // 0 / 1
-
   PainterProgressModel._({
     required this.id,
     required this.shapes,
     required this.isCompleted,
   });
 
-  factory PainterProgressModel.fromMap(Map<String, dynamic> map) {
-    final shapes = <ModelSvgShape>[];
-    return PainterProgressModel._(id: map['id'] as String, shapes: shapes, isCompleted: map['isCompleted'] == 1);
+  factory PainterProgressModel.fromJsonString(String str) {
+    final jsonData = json.decode(str) as Map<String, dynamic>;
+    return PainterProgressModel.fromMap(jsonData);
   }
 
-  Map<String, dynamic> toMap() => <String, dynamic>{'id': id, 'shapes': shapes.toString(), 'isCompleted': isCompleted};
+  factory PainterProgressModel.fromScratch({
+    required String id,
+    required String shapes,
+    required bool isCompleted,
+  }) {
+    return PainterProgressModel._(id: id, shapes: shapes, isCompleted: isCompleted);
+  }
 
-  
+  factory PainterProgressModel.fromMap(Map<String, dynamic> map) {
+    
+    return PainterProgressModel._(id: map['id'] as String, shapes: map['shapes'] as String , isCompleted: map['isCompleted'] == 1);
+  }
+
+  String toJsonString(PainterProgressModel data) {
+    final dyn = data.toMap();
+    return json.encode(dyn);
+  }
+
+  Map<String, dynamic> toMap() => <String, dynamic>{'id': id, 'shapes': shapes.toString(), 'isCompleted': isCompleted ? 1 : 0};
 }

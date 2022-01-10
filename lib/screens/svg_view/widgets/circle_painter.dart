@@ -5,7 +5,7 @@ import 'package:patterns_canvas/patterns_canvas.dart';
 
 class CirclePainter extends CustomPainter {
   final ValueNotifier<Offset> notifier;
-  final ModelSvgShape selectedShape;
+  final SvgShapeModel selectedShape;
   final double radius;
   const CirclePainter({
     required this.notifier,
@@ -14,14 +14,16 @@ class CirclePainter extends CustomPainter {
   }) : super(repaint: notifier);
   @override
   void paint(Canvas canvas, Size size) {
+    debugPrint(radius.toString());
     canvas
       ..clipPath(selectedShape.transformedPath!)
       ..drawCircle(
-          notifier.value,
-          radius,
-          Paint()
-            ..color = selectedShape.fill
-            ..style = PaintingStyle.fill,);
+        notifier.value,
+        radius,
+        Paint()
+          ..color = selectedShape.fill
+          ..style = PaintingStyle.fill,
+      );
   }
 
   @override

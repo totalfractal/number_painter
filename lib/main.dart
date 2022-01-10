@@ -14,6 +14,6 @@ path_drawing: ^0.5.1*/
 
 void main() {
   runApp(const MaterialApp(
-    home: SvgViewScreen(),
+    home: SvgViewScreen(id: 'landscape2',),
   ));
 }

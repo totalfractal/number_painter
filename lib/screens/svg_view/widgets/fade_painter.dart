@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:number_painter/core/models/svg_models/model_svg_shape.dart';
 
 class FadePainter extends CustomPainter {
-  final List<ModelSvgShape> selectedShapes;
+  final List<SvgShapeModel> selectedShapes;
   final Animation<Color?> _color;
   final Paint _paint = Paint();
   FadePainter({required Animation<double> animation, required this.selectedShapes})

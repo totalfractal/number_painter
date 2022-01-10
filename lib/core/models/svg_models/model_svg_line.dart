@@ -5,7 +5,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:path_drawing/path_drawing.dart';
 import 'package:xml/xml.dart';
 
-class ModelSvgLine {
+class SvgLineModel {
   final String id;
   final String d;
   final String stroke;
@@ -16,7 +16,7 @@ class ModelSvgLine {
   //final List<ModelSvgLine> listModelSvgFile;
   final Path _path;
   Path? transformedPath;
-  ModelSvgLine._(
+  SvgLineModel._(
     this.id,
     this.d,
     this.stroke,
@@ -27,7 +27,7 @@ class ModelSvgLine {
     //this.listModelSvgFile,
   ) : _path = parseSvgPathData(d);
 
-  factory ModelSvgLine.fromElement(XmlElement svgElement) {
+  factory SvgLineModel.fromElement(XmlElement svgElement) {
     final paint = Paint()
       ..color = HexColor('#1A171B')
       ..strokeWidth = svgElement.getAttribute('stroke-width') != null
@@ -40,7 +40,7 @@ class ModelSvgLine {
           svgElement.getAttribute('stroke-miterlimit') != null ? double.tryParse(svgElement.getAttribute('stroke-miterlimit')!) ?? 0 : 0
       ..strokeCap = StrokeCap.round;
 
-    return ModelSvgLine._(
+    return SvgLineModel._(
       svgElement.getAttribute('id').toString(),
       svgElement.getAttribute('d').toString(),
       svgElement.getAttribute('stroke').toString(),

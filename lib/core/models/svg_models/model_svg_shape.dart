@@ -4,7 +4,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:path_drawing/path_drawing.dart';
 import 'package:xml/xml.dart';
 
-class ModelSvgShape {
+class SvgShapeModel {
   final String id;
   final String d;
   final Color fill;
@@ -15,20 +15,15 @@ class ModelSvgShape {
   bool isPainted = false;
   bool isPicked = false;
   Path? transformedPath;
-  ModelSvgShape._(
+  SvgShapeModel._(
     this.id,
     this.d,
     this.fill,
     //this.listModelSvgFile,
   ) : _path = parseSvgPathData(d);
 
-  @override
-  String toString() {
-    return id;
-  }
-
-  factory ModelSvgShape.fromElement(XmlElement svgElement) {
-    return ModelSvgShape._(
+  factory SvgShapeModel.fromElement(XmlElement svgElement) {
+    return SvgShapeModel._(
       svgElement.getAttribute('id').toString(),
       svgElement.getAttribute('d').toString(),
       HexColor(svgElement.getAttribute('fill').toString() == 'black' ? '#FF0000' : svgElement.getAttribute('fill').toString()),
@@ -36,13 +31,18 @@ class ModelSvgShape {
     );
   }
 
-  factory ModelSvgShape.epmty() {
-    return ModelSvgShape._(
+  factory SvgShapeModel.epmty() {
+    return SvgShapeModel._(
       '',
       '',
       HexColor('FF000000'),
       //[],
     );
+  }
+
+  @override
+  String toString() {
+    return '$id,$isPainted';
   }
 
   /// transforms a [_path] into [transformedPath] using given [matrix]
