@@ -38,19 +38,25 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
 
   late final PainterProgressModel _painterProgress;
 
+  late final AnimationController _controllerReset = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 400),
+  );
+
   final _dbProvider = DBProvider();
+  final _transformationController = TransformationController();
 
   Size svgSize = Size.zero;
   Size fittedSvgSize = Size.zero;
 
-  List<SvgShapeModel> _selectedSvgShapes = [];
+  Animation<Matrix4>? _animationReset;
+
+  List<SvgShapeModel> _selectedShapes = [];
   SvgShapeModel _selectedShape = SvgShapeModel.epmty();
 
-  Color? _getSelectedColor;
+  Color? _selectedColor;
   bool _isInteract = false;
   bool _isInit = false;
-
-  final _tranformController = TransformationController();
 
   @override
   void dispose() {
@@ -128,122 +134,161 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
           ? Column(
               children: <Widget>[
                 const Spacer(),
-                InteractiveViewer(
-                  transformationController: _tranformController,
-                  onInteractionUpdate: (details) {
-                    //debugPrint(details.scale.toString());
-                    _scaleNotifier.value = _tranformController.value.getMaxScaleOnAxis();
-                  },
-                  minScale: 0.5,
-                  maxScale: 100,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      SizedBox(
-                        width: fittedSvgSize.width,
-                        height: fittedSvgSize.height,
-                        child: const CheckersPaint(),
-                      ),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height * 0.85,
-                        child: ManyCirclesPaint(notifier: _offsetNotifier, selectedColoredShapes: _selectedColoringShapes),
-                      ),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height * 0.85,
-                        child: FadePaint(fadeController: _fadeController, selectedSvgShapes: _selectedSvgShapes),
-                      ),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height * 0.85,
-                        child: //SvgPicture.string(stringSvg),
-                            Listener(
-                          onPointerUp: (e) {
-                            if (!_isInteract) {
-                              debugPrint('up');
-                              for (final shape in _selectedSvgShapes) {
-                                if (shape.transformedPath!.contains(e.localPosition)) {
-                                  if (_selectedShape != shape && !shape.isPainted) {
-                                    setState(() {
-                                      _selectedShape = shape;
-                                      _selectedColoringShapes.add(ColoringShape(cicrclePosition: e.localPosition, shape: shape));
-                                      _offsetNotifier.value = e.localPosition;
+                Stack(
+                  children: [
+                    InteractiveViewer(
+                      transformationController: _transformationController,
+                      onInteractionUpdate: (details) {
+                        //debugPrint(details.scale.toString());
+                        _scaleNotifier.value = _transformationController.value.getMaxScaleOnAxis();
+                      },
+                      onInteractionStart: _onInteractionStart,
+                      minScale: 0.5,
+                      maxScale: 100,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            width: fittedSvgSize.width,
+                            height: fittedSvgSize.height,
+                            child: const CheckersPaint(),
+                          ),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.height * 0.85,
+                            child: ManyCirclesPaint(notifier: _offsetNotifier, selectedColoredShapes: _selectedColoringShapes),
+                          ),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.height * 0.85,
+                            child: FadePaint(fadeController: _fadeController, selectedSvgShapes: _selectedShapes),
+                          ),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.height * 0.85,
+                            child: //SvgPicture.string(stringSvg),
+                                Listener(
+                              onPointerUp: (e) {
+                                debugPrint('up');
+                                if (_selectedColor != null) {
+                                  for (final shape in _selectedShapes) {
+                                    if (shape.transformedPath!.contains(e.localPosition)) {
+                                      if (_selectedShape != shape && !shape.isPainted) {
+                                        setState(() {
+                                          _selectedShape = shape;
+                                          _selectedColoringShapes.add(ColoringShape(cicrclePosition: e.localPosition, shape: shape));
+                                          _offsetNotifier.value = e.localPosition;
 
-                                      _isInteract = true;
-                                    });
-                                    _percentController.forward(from: 0.0);
-                                    //_selectedShape.isPainted = true;
-                                    //_painterProgress.shapes = _svgShapes.join(' ');
-                                    //_dbProvider.updatePainter(_painterProgress);
-                                    _isInteract = false;
+                                          _isInteract = true;
+                                        });
+                                        _percentController.forward(from: 0.0);
+                                        //_selectedShape.isPainted = true;
+                                        //_painterProgress.shapes = _svgShapes.join(' ');
+                                        //_dbProvider.updatePainter(_painterProgress);
+                                        _isInteract = false;
+                                      }
+                                    }
                                   }
+                                } else if (_isInteract) {
+                                  final mediaQuery = MediaQuery.of(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      backgroundColor: Colors.blueGrey.withOpacity(0.2),
+                                      content: const Text(
+                                        'Выберите цвет из палитры',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      behavior: SnackBarBehavior.floating,
+                                      margin: EdgeInsets.only(
+                                        bottom: mediaQuery.size.height - (mediaQuery.padding.bottom + mediaQuery.padding.top) * 2,
+                                        left: 50,
+                                        right: 50,
+                                      ),
+                                    ),
+                                  );
                                 }
-                              }
-                            }
-                          },
-                          child: RepaintBoundary(
-                            child: CustomPaint(
-                              isComplex: true,
-                              painter: ShapePainter(
-                                notifier: _offsetNotifier,
-                                shapes: _svgShapes,
-                                selectedShapes: _selectedSvgShapes,
-                                lines: _svgLines,
-                                sortedShapes: _sortedShapes,
-                                selectedColor: _getSelectedColor,
-                                isInit: _isInit,
-                                center: Offset(
-                                  MediaQuery.of(context).size.width / 2,
-                                  MediaQuery.of(context).size.height * 0.85 / 2,
+                              },
+                              child: RepaintBoundary(
+                                child: CustomPaint(
+                                  isComplex: true,
+                                  painter: ShapePainter(
+                                    notifier: _offsetNotifier,
+                                    shapes: _svgShapes,
+                                    selectedShapes: _selectedShapes,
+                                    lines: _svgLines,
+                                    sortedShapes: _sortedShapes,
+                                    selectedColor: _selectedColor,
+                                    isInit: _isInit,
+                                    center: Offset(
+                                      MediaQuery.of(context).size.width / 2,
+                                      MediaQuery.of(context).size.height * 0.85 / 2,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                      /* SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height * 0.85,
-                        child: RepaintBoundary(
-                          child: CustomPaint(
-                            isComplex: true,
-                            painter: ShapeStrokePainter(shapes: _svgShapes),
-                            ),),
-                      ), */
-                      IgnorePointer(
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height * 0.85,
-                          child: LinePaint(svgLines: _svgLines),
-                        ),
-                      ),
-                      IgnorePointer(
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height * 0.85,
-                          child: ValueListenableBuilder(
-                            valueListenable: _scaleNotifier,
-                            builder: (context, scale, child) {
-                              return RepaintBoundary(
-                                child: CustomPaint(
-                                  painter: NumberPainter(shapes: _svgShapes, scale: scale as double),
-                                ),
-                              );
-                            },
+                          /* SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.height * 0.85,
+                            child: RepaintBoundary(
+                              child: CustomPaint(
+                                isComplex: true,
+                                painter: ShapeStrokePainter(shapes: _svgShapes),
+                                ),),
+                          ), */
+                          IgnorePointer(
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height: MediaQuery.of(context).size.height * 0.85,
+                              child: LinePaint(svgLines: _svgLines),
+                            ),
                           ),
-                        ),
+                          IgnorePointer(
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height: MediaQuery.of(context).size.height * 0.85,
+                              child: ValueListenableBuilder(
+                                valueListenable: _scaleNotifier,
+                                builder: (context, scale, child) {
+                                  return RepaintBoundary(
+                                    child: CustomPaint(
+                                      painter: NumberPainter(shapes: _svgShapes, scale: scale as double),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Positioned(
+                      bottom: 10,
+                      right: 10,
+                      child: ElevatedButton(
+                        onPressed: _animateResetInitialize,
+                        child: const Icon(Icons.zoom_out_map_rounded),
+                      ),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).padding.top + 10,
+                      right: 10,
+                      child: HelpButton(
+                        transformationController: _transformationController,
+                        selectedShapes: _selectedShapes,
+                      ),
+                    ),
+                  ],
                 ),
                 const Spacer(),
                 const Divider(
                   height: 1,
                   color: Colors.black,
                 ),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.14,
+                Container(
+                  alignment: Alignment.center,
+                  height: 120,
                   width: MediaQuery.of(context).size.width,
                   child: ColorPicker(
                     percentController: _percentController,
@@ -258,24 +303,22 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   }
 
   void _callBackIndexColorOfColorPicker(Color selectedColor) {
-    setState(() {
-      if (_getSelectedColor != selectedColor) {
-        _selectedColoringShapes.clear();
-        _fadeController.reset();
-        _getSelectedColor = selectedColor;
-        _selectedSvgShapes = _sortedShapes[selectedColor]!;
-        for (final shape in _svgShapes) {
-          if (shape.fill == _getSelectedColor) {
-            shape.isPicked = true;
-          } else {
-            shape.isPicked = false;
-          }
+    if (_selectedColor != selectedColor) {
+      _selectedColoringShapes.clear();
+      _selectedColor = selectedColor;
+      _selectedShapes = _sortedShapes[selectedColor]!;
+      for (final shape in _svgShapes) {
+        if (shape.fill == _selectedColor) {
+          shape.isPicked = true;
+        } else {
+          shape.isPicked = false;
         }
-        _isInteract = _getSelectedColor == null;
-        _fadeController.forward();
       }
-      debugPrint('_callBackIndexColorOfColorPicker: $_getSelectedColor');
-    });
+      _isInteract = _selectedColor == null;
+      setState(() {});
+      _fadeController.forward(from: 0.0);
+    }
+    debugPrint('_callBackIndexColorOfColorPicker: $_selectedColor');
   }
 
   Map<Color, List<SvgShapeModel>> _setSortedShapes(List<SvgShapeModel> shapes) {
@@ -298,5 +341,138 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
     }
     debugPrint(DateTime.now().toString());
     return sortedShapes;
+  }
+
+  void _onAnimateReset() {
+    _transformationController.value = _animationReset!.value;
+    if (!_controllerReset.isAnimating) {
+      _animationReset!.removeListener(_onAnimateReset);
+      _animationReset = null;
+      _controllerReset.reset();
+    }
+  }
+
+  void _animateResetInitialize() {
+    _controllerReset.reset();
+    _animationReset = Matrix4Tween(
+      begin: _transformationController.value,
+      end: Matrix4.identity(),
+    ).animate(_controllerReset);
+    _animationReset!.addListener(_onAnimateReset);
+    _controllerReset.forward();
+  }
+
+  void _animateHelpInitialize() {
+    _controllerReset.reset();
+    final translatedMatrix = _transformationController.value.clone()..translate(100.0, 100.0, 0.0);
+    _animationReset = Matrix4Tween(
+      begin: _transformationController.value,
+      end: translatedMatrix,
+    ).animate(_controllerReset);
+    _animationReset!.addListener(_onAnimateReset);
+    _controllerReset.forward();
+  }
+
+// Stop a running reset to home transform animation.
+  void _animateResetStop() {
+    _controllerReset.stop();
+    _animationReset?.removeListener(_onAnimateReset);
+    _animationReset = null;
+    _controllerReset.reset();
+  }
+
+  void _onInteractionStart(ScaleStartDetails details) {
+    // If the user tries to cause a transformation while the reset animation is
+    // running, cancel the reset animation.
+    if (_controllerReset.status == AnimationStatus.forward) {
+      _animateResetStop();
+    }
+  }
+}
+
+class HelpButton extends StatefulWidget {
+  final TransformationController transformationController;
+  final List<SvgShapeModel> selectedShapes;
+
+  const HelpButton({
+    required this.transformationController,
+    required this.selectedShapes,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<HelpButton> createState() => _HelpButtonState();
+}
+
+class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateMixin {
+  late final AnimationController _controllerReset = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 400),
+  );
+  Animation<Matrix4>? _animationReset;
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        if (widget.selectedShapes.isNotEmpty) {
+          for (final shape in widget.selectedShapes) {
+            if (!shape.isPainted) {
+              _animateHelpInitialize(shape);
+            }
+          }
+        }
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.green, width: 2),
+            ),
+            height: 60,
+            width: 60,
+            child: const Icon(Icons.lightbulb_rounded),
+          ),
+          Positioned(
+            bottom: -5,
+            left: -10,
+            child: Container(
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.green, width: 2),
+              ),
+              height: 30,
+              width: 30,
+              child: Text('2'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _animateHelpInitialize(SvgShapeModel shape) {
+    _controllerReset.reset();
+    final translatedMatrix = widget.transformationController.value.clone()..translate(shape.number.dx, shape.number.dy);
+    _animationReset = Matrix4Tween(
+      begin: widget.transformationController.value,
+      end: translatedMatrix,
+    ).animate(_controllerReset);
+    _animationReset!.addListener(_onAnimateReset);
+    _controllerReset.forward();
+  }
+
+  void _onAnimateReset() {
+    widget.transformationController.value = _animationReset!.value;
+    if (!_controllerReset.isAnimating) {
+      _animationReset!.removeListener(_onAnimateReset);
+      _animationReset = null;
+      _controllerReset.reset();
+    }
   }
 }

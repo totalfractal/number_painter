@@ -8,13 +8,13 @@ class NumberPainter extends CustomPainter {
   NumberPainter({required this.shapes, required this.scale});
   @override
   void paint(Canvas canvas, Size size) {
-    debugPrint(scale.toString());
     final textPainter = TextPainter(
       textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
+      textDirection: TextDirection.rtl,
     );
     //canvas.clipRect(Offset.zero & size);
     for (final shape in shapes) {
+      canvas.drawRect(Offset(shape.number.dx, shape.number.dy) & Size(shape.number.size/2, shape.number.size), Paint()..color = Colors.redAccent..strokeWidth = 1..style = PaintingStyle.stroke);
       if (scale > 1 && shape.number.size >= 10 && shape.number.size <= 16) {
         final textStyle = TextStyle(
           color: Colors.black,
