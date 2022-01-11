@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:number_painter/core/db_provider.dart';
+import 'package:number_painter/core/models/coloring_shape.dart';
 import 'package:number_painter/core/models/db_models/painter_progress_model.dart';
-import 'package:number_painter/core/models/svg_models/model_svg_line.dart';
-import 'package:number_painter/core/models/svg_models/model_svg_shape.dart';
-import 'package:number_painter/screens/svg_view/widgets/shape_painter.dart';
+import 'package:number_painter/core/models/svg_models/svg_line_model.dart';
+import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
 import 'package:number_painter/screens/svg_view/widgets/checkers_paint.dart';
 import 'package:number_painter/screens/svg_view/widgets/circle_paint.dart';
 import 'package:number_painter/screens/svg_view/widgets/color_picker.dart';
 import 'package:number_painter/screens/svg_view/widgets/fade_paint.dart';
 import 'package:number_painter/screens/svg_view/widgets/line_paint.dart';
+import 'package:number_painter/screens/svg_view/widgets/number_painter.dart';
+import 'package:number_painter/screens/svg_view/widgets/shape_painter.dart';
 import 'package:xml/xml.dart';
 
 //TODO: может сделать InheritedWidget для переброса инфы?
@@ -22,15 +24,16 @@ class SvgViewScreen extends StatefulWidget {
 }
 
 class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateMixin {
-  final _notifier = ValueNotifier(Offset.zero);
+  final _offsetNotifier = ValueNotifier(Offset.zero); //TODO: сделать через provider
+  final _scaleNotifier = ValueNotifier(1.0); //TODO: сделать через provider
 
   final List<XmlElement> _stringSvgPathShapes = [];
   final List<SvgShapeModel> _svgShapes = [];
   final List<SvgLineModel> _svgLines = [];
   final Map<Color, List<SvgShapeModel>> _sortedShapes = {};
+  final List<ColoringShape> _selectedColoringShapes = [];
 
   late final _fadeController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
-  late final _fillController = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
   late final _percentController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
 
   late final PainterProgressModel _painterProgress;
@@ -47,12 +50,13 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   bool _isInteract = false;
   bool _isInit = false;
 
+  final _tranformController = TransformationController();
+
   @override
   void dispose() {
     _fadeController.dispose();
     _percentController.dispose();
-    _fillController.dispose();
-    _notifier.dispose();
+    _offsetNotifier.dispose();
     super.dispose();
   }
 
@@ -125,6 +129,12 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
               children: <Widget>[
                 const Spacer(),
                 InteractiveViewer(
+                  transformationController: _tranformController,
+                  onInteractionUpdate: (details) {
+                    //debugPrint(details.scale.toString());
+                    _scaleNotifier.value = _tranformController.value.getMaxScaleOnAxis();
+                  },
+                  minScale: 0.5,
                   maxScale: 100,
                   child: Stack(
                     alignment: Alignment.center,
@@ -137,14 +147,13 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                       SizedBox(
                         width: MediaQuery.of(context).size.width,
                         height: MediaQuery.of(context).size.height * 0.85,
+                        child: ManyCirclesPaint(notifier: _offsetNotifier, selectedColoredShapes: _selectedColoringShapes),
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height * 0.85,
                         child: FadePaint(fadeController: _fadeController, selectedSvgShapes: _selectedSvgShapes),
                       ),
-                      if (_selectedShape.transformedPath != null)
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height * 0.85,
-                          child: CirclePaint(notifier: _notifier, fillController: _fillController, selectedShape: _selectedShape),
-                        ),
                       SizedBox(
                         width: MediaQuery.of(context).size.width,
                         height: MediaQuery.of(context).size.height * 0.85,
@@ -153,25 +162,21 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                           onPointerUp: (e) {
                             if (!_isInteract) {
                               debugPrint('up');
-                              _fillController.reset();
                               for (final shape in _selectedSvgShapes) {
                                 if (shape.transformedPath!.contains(e.localPosition)) {
                                   if (_selectedShape != shape && !shape.isPainted) {
-                                    _percentController.reset();
                                     setState(() {
                                       _selectedShape = shape;
-                                      _notifier.value = e.localPosition;
+                                      _selectedColoringShapes.add(ColoringShape(cicrclePosition: e.localPosition, shape: shape));
+                                      _offsetNotifier.value = e.localPosition;
 
                                       _isInteract = true;
                                     });
-                                    _fillController.forward();
-                                    _percentController.forward();
-                                      //_selectedShape.isPainted = true;
-                                      //_painterProgress.shapes = _svgShapes.join(' ');
-                                      //_dbProvider.updatePainter(_painterProgress);
-                                      _isInteract = false;
-                                      
-                                   
+                                    _percentController.forward(from: 0.0);
+                                    //_selectedShape.isPainted = true;
+                                    //_painterProgress.shapes = _svgShapes.join(' ');
+                                    //_dbProvider.updatePainter(_painterProgress);
+                                    _isInteract = false;
                                   }
                                 }
                               }
@@ -181,7 +186,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                             child: CustomPaint(
                               isComplex: true,
                               painter: ShapePainter(
-                                notifier: _notifier,
+                                notifier: _offsetNotifier,
                                 shapes: _svgShapes,
                                 selectedShapes: _selectedSvgShapes,
                                 lines: _svgLines,
@@ -213,6 +218,22 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                           child: LinePaint(svgLines: _svgLines),
                         ),
                       ),
+                      IgnorePointer(
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height * 0.85,
+                          child: ValueListenableBuilder(
+                            valueListenable: _scaleNotifier,
+                            builder: (context, scale, child) {
+                              return RepaintBoundary(
+                                child: CustomPaint(
+                                  painter: NumberPainter(shapes: _svgShapes, scale: scale as double),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -239,6 +260,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   void _callBackIndexColorOfColorPicker(Color selectedColor) {
     setState(() {
       if (_getSelectedColor != selectedColor) {
+        _selectedColoringShapes.clear();
         _fadeController.reset();
         _getSelectedColor = selectedColor;
         _selectedSvgShapes = _sortedShapes[selectedColor]!;
@@ -262,13 +284,13 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
     for (final shape in shapes) {
       if (sortedShapes.containsKey(shape.fill)) {
         sortedShapes[shape.fill]!.add(shape);
-        //shape.setNumberProperties(sortedShapes.keys.toList().indexOf(shape.fill));
+        shape.setNumberProperties(sortedShapes.keys.toList().indexOf(shape.fill));
         //shape.number = PainterNumber(dx: 0, dy: 0, number: sortedShapes.keys.toList().indexOf(shape.fill), size: 0);
         //await _setNumberProperties(shape, sortedShapes.keys.toList().indexOf(shape.fill));
         //shape.sortedId = sortedShapes.keys.toList().indexOf(shape.fill);
       } else {
         sortedShapes[shape.fill] = [shape];
-        //shape.setNumberProperties(sortedShapes.keys.toList().indexOf(shape.fill));
+        shape.setNumberProperties(sortedShapes.keys.toList().indexOf(shape.fill));
         //shape.number = PainterNumber(dx: 0, dy: 0, number: sortedShapes.keys.toList().indexOf(shape.fill), size: 0);
         //await _setNumberProperties(shape, sortedShapes.keys.toList().indexOf(shape.fill));
         //shape.sortedId = sortedShapes.keys.toList().indexOf(shape.fill);
@@ -278,6 +300,3 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
     return sortedShapes;
   }
 }
-
-
-

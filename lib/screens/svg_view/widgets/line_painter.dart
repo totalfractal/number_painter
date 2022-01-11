@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:number_painter/core/models/svg_models/model_svg_line.dart';
+import 'package:number_painter/core/models/svg_models/svg_line_model.dart';
 
 class LinePainter extends CustomPainter {
   final List<SvgLineModel> lines;
@@ -10,6 +10,7 @@ class LinePainter extends CustomPainter {
     final _paint = Paint()
       ..style = PaintingStyle.stroke
       ..isAntiAlias = true
+      ..strokeCap = StrokeCap.round
       ..filterQuality = FilterQuality.low
       ..color = Colors.black;
     debugPrint('lines');

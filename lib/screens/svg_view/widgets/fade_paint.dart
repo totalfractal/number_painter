@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:number_painter/core/models/svg_models/model_svg_shape.dart';
+import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
 import 'package:number_painter/screens/svg_view/widgets/fade_painter.dart';
 
 class FadePaint extends StatefulWidget {
@@ -24,8 +24,8 @@ class _FadePaintState extends State<FadePaint> {
 
   @override
   void dispose() {
-    super.dispose();
     widget.fadeController.removeListener(_fadeControllerListener);
+    super.dispose();
   }
 
   @override

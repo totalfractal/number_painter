@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:number_painter/core/models/svg_models/model_svg_line.dart';
+import 'package:number_painter/core/models/svg_models/svg_line_model.dart';
 import 'package:number_painter/screens/svg_view/widgets/line_painter.dart';
 
 class LinePaint extends StatelessWidget {

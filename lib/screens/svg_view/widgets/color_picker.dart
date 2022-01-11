@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:number_painter/core/models/svg_models/model_svg_shape.dart';
+import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
 import 'package:number_painter/screens/svg_view/widgets/radial_painter.dart';
 import 'package:number_painter/screens/svg_view/widgets/radial_progress_painter.dart';
 

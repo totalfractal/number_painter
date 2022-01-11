@@ -52,7 +52,8 @@ class SvgShapeModel {
     final path = transformedPath;
     final metrics = path!.computeMetrics();
     final bounds = path.getBounds();
-    var txtSize = metrics.elementAt(0).length * .1;
+    var txtSize = 16.0;
+    //debugPrint(txtSize.toString());
     /* for (final metric in metrics) {
       txtSize += metric.length.toDouble();q
     }

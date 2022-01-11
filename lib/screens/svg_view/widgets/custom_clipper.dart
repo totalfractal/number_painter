@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:number_painter/core/models/svg_models/model_svg_shape.dart';
+import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
 
 class MyCustomClipper extends CustomClipper<Path> {
   final SvgShapeModel selectedPath;
