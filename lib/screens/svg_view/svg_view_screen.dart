@@ -144,7 +144,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                       },
                       onInteractionStart: _onInteractionStart,
                       minScale: 0.5,
-                      maxScale: 100,
+                      maxScale: 100.0,
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
@@ -410,6 +410,13 @@ class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateM
     duration: const Duration(milliseconds: 400),
   );
   Animation<Matrix4>? _animationReset;
+
+  @override
+  void dispose() {
+    _controllerReset.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -418,6 +425,8 @@ class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateM
           for (final shape in widget.selectedShapes) {
             if (!shape.isPainted) {
               _animateHelpInitialize(shape);
+              //print(Offset(shape.number.dx, shape.number.dy));
+              //debugPrint(widget.transformationController.toScene(Offset(shape.number.dx, shape.number.dy)).toString());
             }
           }
         }
@@ -458,10 +467,11 @@ class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateM
 
   void _animateHelpInitialize(SvgShapeModel shape) {
     _controllerReset.reset();
-    final translatedMatrix = widget.transformationController.value.clone()..translate(shape.number.dx, shape.number.dy);
+    var _focalPoint = widget.transformationController.toScene(Offset(shape.number.dx, shape.number.dy));
+    //final translatedMatrix = widget.transformationController.value.clone()..translate(shape.number.dx, shape.number.dy);
     _animationReset = Matrix4Tween(
       begin: widget.transformationController.value,
-      end: translatedMatrix,
+      end: Matrix4.identity()..translate(-20.0, -20.0) /* ..scale(2.0) */,
     ).animate(_controllerReset);
     _animationReset!.addListener(_onAnimateReset);
     _controllerReset.forward();
