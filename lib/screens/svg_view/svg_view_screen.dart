@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:matrix4_transform/matrix4_transform.dart';
 import 'package:number_painter/core/db_provider.dart';
 import 'package:number_painter/core/models/coloring_shape.dart';
 import 'package:number_painter/core/models/db_models/painter_progress_model.dart';
@@ -6,10 +7,11 @@ import 'package:number_painter/core/models/svg_models/svg_line_model.dart';
 import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
 import 'package:number_painter/screens/svg_view/widgets/checkers_paint.dart';
 import 'package:number_painter/screens/svg_view/widgets/circle_paint.dart';
-import 'package:number_painter/screens/svg_view/widgets/color_picker.dart';
+import 'package:number_painter/screens/svg_view/widgets/color_picker/color_picker.dart';
 import 'package:number_painter/screens/svg_view/widgets/fade_paint.dart';
 import 'package:number_painter/screens/svg_view/widgets/line_paint.dart';
 import 'package:number_painter/screens/svg_view/widgets/number_painter.dart';
+import 'package:number_painter/screens/svg_view/widgets/painter_inherited.dart';
 import 'package:number_painter/screens/svg_view/widgets/shape_painter.dart';
 import 'package:xml/xml.dart';
 
@@ -24,14 +26,16 @@ class SvgViewScreen extends StatefulWidget {
 }
 
 class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateMixin {
-  final _offsetNotifier = ValueNotifier(Offset.zero); //TODO: сделать через provider
-  final _scaleNotifier = ValueNotifier(1.0); //TODO: сделать через provider
+  final _offsetNotifier = ValueNotifier(Offset.zero);
+  final _scaleNotifier = ValueNotifier(1.0);
 
   final List<XmlElement> _stringSvgPathShapes = [];
   final List<SvgShapeModel> _svgShapes = [];
   final List<SvgLineModel> _svgLines = [];
   final Map<Color, List<SvgShapeModel>> _sortedShapes = {};
   final List<ColoringShape> _selectedColoringShapes = [];
+
+  final GlobalKey<ColorPickerState> _colorListKey = GlobalKey<ColorPickerState>();
 
   late final _fadeController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
   late final _percentController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
@@ -44,7 +48,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   );
 
   final _dbProvider = DBProvider();
-  final _transformationController = TransformationController();
+  late final _transformationController = TransformationController();
 
   Size svgSize = Size.zero;
   Size fittedSvgSize = Size.zero;
@@ -55,20 +59,22 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   SvgShapeModel _selectedShape = SvgShapeModel.epmty();
 
   Color? _selectedColor;
-  bool _isInteract = false;
   bool _isInit = false;
 
   @override
   void dispose() {
     _fadeController.dispose();
-    _percentController.dispose();
     _offsetNotifier.dispose();
+    _transformationController.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
+    _transformationController.addListener(() {
+      _scaleNotifier.value = _transformationController.value.getMaxScaleOnAxis();
+    });
     DefaultAssetBundle.of(context).loadString('assets/${widget.id}.svg').then((value) {
       final svgAttributes = XmlDocument.parse(value).findElements('svg').first.attributes;
       debugPrint(svgAttributes.toString());
@@ -110,6 +116,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
           for (var i = 0; i < _svgShapes.length; i++) {
             _svgShapes[i].isPainted = shapesList[i] == 'true';
           }
+         // await _dbProvider.deletePainter(painter.id);
         } else {
           await _dbProvider.addNewPainter(_painterProgress);
         }
@@ -131,172 +138,189 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
     return Scaffold(
       backgroundColor: Colors.white,
       body: _isInit
-          ? Column(
-              children: <Widget>[
-                const Spacer(),
-                Stack(
-                  children: [
-                    InteractiveViewer(
-                      transformationController: _transformationController,
-                      onInteractionUpdate: (details) {
-                        //debugPrint(details.scale.toString());
-                        _scaleNotifier.value = _transformationController.value.getMaxScaleOnAxis();
-                      },
-                      onInteractionStart: _onInteractionStart,
-                      minScale: 0.5,
-                      maxScale: 100.0,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          SizedBox(
-                            width: fittedSvgSize.width,
-                            height: fittedSvgSize.height,
-                            child: const CheckersPaint(),
-                          ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height * 0.85,
-                            child: ManyCirclesPaint(notifier: _offsetNotifier, selectedColoredShapes: _selectedColoringShapes),
-                          ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height * 0.85,
-                            child: FadePaint(fadeController: _fadeController, selectedSvgShapes: _selectedShapes),
-                          ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height * 0.85,
-                            child: //SvgPicture.string(stringSvg),
-                                Listener(
-                              onPointerUp: (e) {
-                                debugPrint('up');
-                                if (_selectedColor != null) {
-                                  for (final shape in _selectedShapes) {
-                                    if (shape.transformedPath!.contains(e.localPosition)) {
-                                      if (_selectedShape != shape && !shape.isPainted) {
-                                        setState(() {
-                                          _selectedShape = shape;
-                                          _selectedColoringShapes.add(ColoringShape(cicrclePosition: e.localPosition, shape: shape));
-                                          _offsetNotifier.value = e.localPosition;
-
-                                          _isInteract = true;
-                                        });
-                                        _percentController.forward(from: 0.0);
-                                        //_selectedShape.isPainted = true;
-                                        //_painterProgress.shapes = _svgShapes.join(' ');
-                                        //_dbProvider.updatePainter(_painterProgress);
-                                        _isInteract = false;
+          // Этот виджет нужен для переброса данных в другие виджеты
+          // Самый яркий пример в виджете SingleCirclePaint
+          ? PainterInherited(
+              dbProvider: _dbProvider,
+              painterProgress: _painterProgress,
+              svgShapes: _svgShapes,
+              selectedShapes: _selectedShapes,
+              child: Column(
+                children: <Widget>[
+                  const Spacer(),
+                  Stack(
+                    children: [
+                      InteractiveViewer(
+                        transformationController: _transformationController,
+                        onInteractionUpdate: (details) {
+                          //debugPrint(details.scale.toString());
+                          _scaleNotifier.value = _transformationController.value.getMaxScaleOnAxis();
+                        },
+                        onInteractionStart: _onInteractionStart,
+                        minScale: 0.1,
+                        maxScale: 100.0,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox(
+                              width: fittedSvgSize.width,
+                              height: fittedSvgSize.height,
+                              child: const CheckersPaint(),
+                            ),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height: MediaQuery.of(context).size.height * 0.85,
+                              child: ManyCirclesPaint(notifier: _offsetNotifier, selectedColoredShapes: _selectedColoringShapes, percentController: _percentController, colorListKey: _colorListKey,),
+                            ),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height: MediaQuery.of(context).size.height * 0.85,
+                              child: FadePaint(fadeController: _fadeController, selectedSvgShapes: _selectedShapes),
+                            ),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height: MediaQuery.of(context).size.height * 0.85,
+                              child: //SvgPicture.string(stringSvg),
+                                  Listener(
+                                onPointerUp: (e) {
+                                  debugPrint('up');
+                                  if (_selectedColor != null) {
+                                    final currentPercent = _selectedShapes.where((shape) => shape.isPainted).length / _selectedShapes.length;
+                                    if (currentPercent < 1) {
+                                      for (final shape in _selectedShapes) {
+                                        if (shape.transformedPath!.contains(e.localPosition)) {
+                                          if (_selectedShape != shape && !shape.isPainted) {
+                                            _offsetNotifier.value = e.localPosition;
+                                            setState(() {
+                                              _selectedShape = shape;
+                                              _selectedColoringShapes.add(ColoringShape(cicrclePosition: e.localPosition, shape: shape));
+                                            });
+                                            /* final nextPercent =
+                                                (_selectedShapes.where((shape) => shape.isPainted).length + 1) / _selectedShapes.length;
+                                            if (nextPercent == 1) {
+                                              if (_selectedColor != null) {
+                                                _colorListKey.currentState!.remove(_selectedColor!);
+                                                setState(() {
+                                                  _selectedColor = null;
+                                                  _selectedShapes = [];
+                                                });
+                                              }
+                                            } */
+                                          }
+                                        }
                                       }
-                                    }
+                                    } 
+                                  } else {
+                                    final mediaQuery = MediaQuery.of(context);
+                                    /*  */ ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        backgroundColor: Colors.blueGrey.withOpacity(0.2),
+                                        content: const Text(
+                                          'Выберите цвет из палитры',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        behavior: SnackBarBehavior.floating,
+                                        margin: EdgeInsets.only(
+                                          bottom: mediaQuery.size.height - (mediaQuery.padding.bottom + mediaQuery.padding.top) * 2,
+                                          left: 50,
+                                          right: 50,
+                                        ),
+                                      ),
+                                    );
                                   }
-                                } else if (_isInteract) {
-                                  final mediaQuery = MediaQuery.of(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      backgroundColor: Colors.blueGrey.withOpacity(0.2),
-                                      content: const Text(
-                                        'Выберите цвет из палитры',
-                                        textAlign: TextAlign.center,
+                                },
+                                child: RepaintBoundary(
+                                  child: CustomPaint(
+                                    isComplex: true,
+                                    painter: ShapePainter(
+                                      notifier: _offsetNotifier,
+                                      shapes: _svgShapes,
+                                      selectedShapes: _selectedShapes,
+                                      lines: _svgLines,
+                                      sortedShapes: _sortedShapes,
+                                      selectedColor: _selectedColor,
+                                      isInit: _isInit,
+                                      center: Offset(
+                                        MediaQuery.of(context).size.width / 2,
+                                        MediaQuery.of(context).size.height * 0.85 / 2,
                                       ),
-                                      behavior: SnackBarBehavior.floating,
-                                      margin: EdgeInsets.only(
-                                        bottom: mediaQuery.size.height - (mediaQuery.padding.bottom + mediaQuery.padding.top) * 2,
-                                        left: 50,
-                                        right: 50,
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                              child: RepaintBoundary(
-                                child: CustomPaint(
-                                  isComplex: true,
-                                  painter: ShapePainter(
-                                    notifier: _offsetNotifier,
-                                    shapes: _svgShapes,
-                                    selectedShapes: _selectedShapes,
-                                    lines: _svgLines,
-                                    sortedShapes: _sortedShapes,
-                                    selectedColor: _selectedColor,
-                                    isInit: _isInit,
-                                    center: Offset(
-                                      MediaQuery.of(context).size.width / 2,
-                                      MediaQuery.of(context).size.height * 0.85 / 2,
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                          /* SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height * 0.85,
-                            child: RepaintBoundary(
-                              child: CustomPaint(
-                                isComplex: true,
-                                painter: ShapeStrokePainter(shapes: _svgShapes),
-                                ),),
-                          ), */
-                          IgnorePointer(
-                            child: SizedBox(
+                            /* SizedBox(
                               width: MediaQuery.of(context).size.width,
                               height: MediaQuery.of(context).size.height * 0.85,
-                              child: LinePaint(svgLines: _svgLines),
-                            ),
-                          ),
-                          IgnorePointer(
-                            child: SizedBox(
-                              width: MediaQuery.of(context).size.width,
-                              height: MediaQuery.of(context).size.height * 0.85,
-                              child: ValueListenableBuilder(
-                                valueListenable: _scaleNotifier,
-                                builder: (context, scale, child) {
-                                  return RepaintBoundary(
-                                    child: CustomPaint(
-                                      painter: NumberPainter(shapes: _svgShapes, scale: scale as double),
-                                    ),
-                                  );
-                                },
+                              child: RepaintBoundary(
+                                child: CustomPaint(
+                                  isComplex: true,
+                                  painter: ShapeStrokePainter(shapes: _svgShapes),
+                                  ),),
+                            ), */
+                            IgnorePointer(
+                              child: SizedBox(
+                                width: MediaQuery.of(context).size.width,
+                                height: MediaQuery.of(context).size.height * 0.85,
+                                child: LinePaint(svgLines: _svgLines),
                               ),
                             ),
-                          ),
-                        ],
+                            IgnorePointer(
+                              child: SizedBox(
+                                width: MediaQuery.of(context).size.width,
+                                height: MediaQuery.of(context).size.height * 0.85,
+                                //С помощью этого виджета слушаем изменения при зуме
+                                child: ValueListenableBuilder(
+                                  valueListenable: _scaleNotifier,
+                                  builder: (context, scale, child) {
+                                    return RepaintBoundary(
+                                      child: CustomPaint(
+                                        painter: NumberPainter(shapes: _svgShapes, scale: scale as double),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Positioned(
-                      bottom: 10,
-                      right: 10,
-                      child: ElevatedButton(
-                        onPressed: _animateResetInitialize,
-                        child: const Icon(Icons.zoom_out_map_rounded),
+                      Positioned(
+                        bottom: 10,
+                        right: 10,
+                        child: ElevatedButton(
+                          onPressed: _animateResetInitialize,
+                          child: const Icon(Icons.zoom_out_map_rounded),
+                        ),
                       ),
-                    ),
-                    Positioned(
-                      top: MediaQuery.of(context).padding.top + 10,
-                      right: 10,
-                      child: HelpButton(
-                        transformationController: _transformationController,
-                        selectedShapes: _selectedShapes,
+                      Positioned(
+                        top: MediaQuery.of(context).padding.top + 10,
+                        right: 10,
+                        child: HelpButton(
+                          transformationController: _transformationController,
+                          selectedShapes: _selectedShapes,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                const Divider(
-                  height: 1,
-                  color: Colors.black,
-                ),
-                Container(
-                  alignment: Alignment.center,
-                  height: 120,
-                  width: MediaQuery.of(context).size.width,
-                  child: ColorPicker(
-                    percentController: _percentController,
-                    sortedShapes: _sortedShapes,
-                    setSelectedColor: _callBackIndexColorOfColorPicker,
+                    ],
                   ),
-                ),
-              ],
+                  const Spacer(),
+                  const Divider(
+                    height: 1,
+                    color: Colors.black,
+                  ),
+                  Container(
+                    alignment: Alignment.center,
+                    height: 100,
+                    width: MediaQuery.of(context).size.width,
+                    child: ColorPicker(
+                      key: _colorListKey,
+                      percentController: _percentController,
+                      sortedShapes: _sortedShapes,
+                      onColorSelect: _callBackIndexColorOfColorPicker,
+                    ),
+                  ),
+                ],
+              ),
             )
           : const Center(child: CircularProgressIndicator()),
     );
@@ -314,7 +338,6 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
           shape.isPicked = false;
         }
       }
-      _isInteract = _selectedColor == null;
       setState(() {});
       _fadeController.forward(from: 0.0);
     }
@@ -357,17 +380,6 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
     _animationReset = Matrix4Tween(
       begin: _transformationController.value,
       end: Matrix4.identity(),
-    ).animate(_controllerReset);
-    _animationReset!.addListener(_onAnimateReset);
-    _controllerReset.forward();
-  }
-
-  void _animateHelpInitialize() {
-    _controllerReset.reset();
-    final translatedMatrix = _transformationController.value.clone()..translate(100.0, 100.0, 0.0);
-    _animationReset = Matrix4Tween(
-      begin: _transformationController.value,
-      end: translatedMatrix,
     ).animate(_controllerReset);
     _animationReset!.addListener(_onAnimateReset);
     _controllerReset.forward();
@@ -467,11 +479,13 @@ class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateM
 
   void _animateHelpInitialize(SvgShapeModel shape) {
     _controllerReset.reset();
-    var _focalPoint = widget.transformationController.toScene(Offset(shape.number.dx, shape.number.dy));
+    var focalPoint = widget.transformationController.toScene(Offset(shape.number.dx, shape.number.dy));
     //final translatedMatrix = widget.transformationController.value.clone()..translate(shape.number.dx, shape.number.dy);
     _animationReset = Matrix4Tween(
       begin: widget.transformationController.value,
-      end: Matrix4.identity()..translate(-20.0, -20.0) /* ..scale(2.0) */,
+      end: Matrix4Transform()
+          .scale(15, origin: Offset(shape.number.dx, shape.number.dy))
+          .matrix4, //..scale(3.0)..translate((focalPoint.dx - shape.number.dx), (focalPoint.dy - shape.number.dy)) /* ..scale(2.0) */,
     ).animate(_controllerReset);
     _animationReset!.addListener(_onAnimateReset);
     _controllerReset.forward();

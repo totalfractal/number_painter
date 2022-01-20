@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
 
@@ -5,7 +7,7 @@ class NumberPainter extends CustomPainter {
   final List<SvgShapeModel> shapes;
   final double scale;
 
-  NumberPainter({required this.shapes, required this.scale});
+  NumberPainter({ required this.shapes, required this.scale});
   @override
   void paint(Canvas canvas, Size size) {
     final textPainter = TextPainter(
@@ -14,7 +16,14 @@ class NumberPainter extends CustomPainter {
     );
     //canvas.clipRect(Offset.zero & size);
     for (final shape in shapes) {
-      canvas.drawRect(Offset(shape.number.dx, shape.number.dy) & Size(shape.number.size/2, shape.number.size), Paint()..color = Colors.redAccent..strokeWidth = 1..style = PaintingStyle.stroke);
+      /* canvas.drawPoints(
+          PointMode.points,
+          [Offset(shape.number.dx, shape.number.dy)],
+          Paint()
+            ..color = Colors.redAccent
+            ..strokeWidth = 1
+            ..style = PaintingStyle.fill); */
+      //canvas.drawRect(Offset(shape.number.dx, shape.number.dy) & Size(shape.number.size/2, shape.number.size), Paint()..color = Colors.redAccent..strokeWidth = 1..style = PaintingStyle.stroke);
       if (scale > 1 && shape.number.size >= 10 && shape.number.size <= 16) {
         final textStyle = TextStyle(
           color: Colors.black,

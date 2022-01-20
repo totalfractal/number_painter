@@ -22,6 +22,7 @@ class RadialProgressPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    debugPrint(_percent.value.toString());
     final bgLine = Paint()
       ..color = bgColor
       ..strokeCap = StrokeCap.round
@@ -36,18 +37,17 @@ class RadialProgressPainter extends CustomPainter {
 
     final center = Offset(size.width / 2, size.height / 2);
     final radius = min(size.width / 2, size.height / 2);
-    //final oldSweepAngle = pi * 2 * oldPercent;
     final sweepAngle = pi * 2 * _percent.value;
 
     canvas
       ..drawCircle(center, radius, bgLine)
-      ..drawArc(
+      /* ..drawArc(
         Rect.fromCircle(center: center, radius: radius),
         pi,
         pi * 2 * currentPercent,
         false,
         completedLine,
-      )
+      ) */
       ..drawArc(
         Rect.fromCircle(center: center, radius: radius),
         pi,
