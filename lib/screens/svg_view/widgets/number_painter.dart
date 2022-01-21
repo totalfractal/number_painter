@@ -7,7 +7,7 @@ class NumberPainter extends CustomPainter {
   final List<SvgShapeModel> shapes;
   final double scale;
 
-  NumberPainter({ required this.shapes, required this.scale});
+  NumberPainter({required this.shapes, required this.scale});
   @override
   void paint(Canvas canvas, Size size) {
     final textPainter = TextPainter(
@@ -16,145 +16,56 @@ class NumberPainter extends CustomPainter {
     );
     //canvas.clipRect(Offset.zero & size);
     for (final shape in shapes) {
+      final textStyle = TextStyle(
+        color: Colors.black,
+        fontSize: shape.number.size,
+      );
+      final textSpan = TextSpan(
+        text: '${shape.number.number + 1}',
+        style: textStyle,
+      );
+      textPainter
+        ..text = textSpan
+        ..layout(
+          minWidth: 0.5,
+          maxWidth: 100,
+        );
       /* canvas.drawPoints(
           PointMode.points,
           [Offset(shape.number.dx, shape.number.dy)],
           Paint()
             ..color = Colors.redAccent
             ..strokeWidth = 1
-            ..style = PaintingStyle.fill); */
-      //canvas.drawRect(Offset(shape.number.dx, shape.number.dy) & Size(shape.number.size/2, shape.number.size), Paint()..color = Colors.redAccent..strokeWidth = 1..style = PaintingStyle.stroke);
-      if (scale > 1 && shape.number.size >= 10 && shape.number.size <= 16) {
-        final textStyle = TextStyle(
-          color: Colors.black,
-          fontSize: shape.number.size,
-        );
-        final textSpan = TextSpan(
-          text: '${shape.number.number + 1}',
-          style: textStyle,
-        );
+            ..style = PaintingStyle.fill);
+      canvas.drawRect(Rect.fromCenter(center: Offset(shape.number.dx, shape.number.dy), height: textPainter.height, width: textPainter.width)  , Paint()..color = Colors.redAccent..strokeWidth = 1..style = PaintingStyle.stroke); */
+      if (!shape.isPainted) {
+        if (scale > 0 && shape.number.size >= 10 && shape.number.size <= 16) {
+          textPainter.paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
+        }
 
-        textPainter
-          ..text = textSpan
-          ..layout(
-            minWidth: 0.5,
-            maxWidth: 100,
-          )
-          ..paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
-      }
+        if (scale > 2 && shape.number.size >= 8 && shape.number.size < 10) {
+          textPainter.paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
+        }
 
-      if (scale > 2 && shape.number.size >= 8 && shape.number.size < 10) {
-        final textStyle = TextStyle(
-          color: Colors.black,
-          fontSize: shape.number.size,
-        );
-        final textSpan = TextSpan(
-          text: '${shape.number.number + 1}',
-          style: textStyle,
-        );
+        if (scale > 3 && shape.number.size >= 6 && shape.number.size < 8) {
+          textPainter.paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
+        }
 
-        textPainter
-          ..text = textSpan
-          ..layout(
-            minWidth: 0.5,
-            maxWidth: 100,
-          )
-          ..paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
-      }
+        if (scale > 4 && shape.number.size >= 5 && shape.number.size < 6) {
+          textPainter.paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
+        }
 
-      if (scale > 3 && shape.number.size >= 6 && shape.number.size < 8) {
-        final textStyle = TextStyle(
-          color: Colors.black,
-          fontSize: shape.number.size,
-        );
-        final textSpan = TextSpan(
-          text: '${shape.number.number + 1}',
-          style: textStyle,
-        );
+        if (scale > 5 && shape.number.size >= 4 && shape.number.size < 5) {
+          textPainter.paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
+        }
 
-        textPainter
-          ..text = textSpan
-          ..layout(
-            minWidth: 0.5,
-            maxWidth: 100,
-          )
-          ..paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
-      }
+        if (scale > 6 && shape.number.size >= 3 && shape.number.size < 4) {
+          textPainter.paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
+        }
 
-      if (scale > 4 && shape.number.size >= 5 && shape.number.size < 6) {
-        final textStyle = TextStyle(
-          color: Colors.black,
-          fontSize: shape.number.size,
-        );
-        final textSpan = TextSpan(
-          text: '${shape.number.number + 1}',
-          style: textStyle,
-        );
-
-        textPainter
-          ..text = textSpan
-          ..layout(
-            minWidth: 0.5,
-            maxWidth: 100,
-          )
-          ..paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
-      }
-
-      if (scale > 5 && shape.number.size >= 4 && shape.number.size < 5) {
-        final textStyle = TextStyle(
-          color: Colors.black,
-          fontSize: shape.number.size,
-        );
-        final textSpan = TextSpan(
-          text: '${shape.number.number + 1}',
-          style: textStyle,
-        );
-
-        textPainter
-          ..text = textSpan
-          ..layout(
-            minWidth: 0.5,
-            maxWidth: 100,
-          )
-          ..paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
-      }
-
-      if (scale > 6 && shape.number.size >= 3 && shape.number.size < 4) {
-        final textStyle = TextStyle(
-          color: Colors.black,
-          fontSize: shape.number.size,
-        );
-        final textSpan = TextSpan(
-          text: '${shape.number.number + 1}',
-          style: textStyle,
-        );
-
-        textPainter
-          ..text = textSpan
-          ..layout(
-            minWidth: 0.5,
-            maxWidth: 100,
-          )
-          ..paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
-      }
-
-      if (scale > 8 && shape.number.size >= 2 && shape.number.size < 3) {
-        final textStyle = TextStyle(
-          color: Colors.black,
-          fontSize: shape.number.size,
-        );
-        final textSpan = TextSpan(
-          text: '${shape.number.number + 1}',
-          style: textStyle,
-        );
-
-        textPainter
-          ..text = textSpan
-          ..layout(
-            minWidth: 0.5,
-            maxWidth: 100,
-          )
-          ..paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
+        if (scale > 8 && shape.number.size >= 1 && shape.number.size < 3) {
+          textPainter.paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
+        }
       }
     }
   }

@@ -6,15 +6,14 @@ typedef RemovedItemBuilder<T> = Widget Function(T item, BuildContext context, An
 class ColorListModel<E> {
   final GlobalKey<AnimatedListState> listKey;
   final RemovedItemBuilder<E> removedItemBuilder;
+  final List<E> _items;
+  int get length => _items.length;
+  AnimatedListState? get _animatedList => listKey.currentState;
   ColorListModel({
     required this.listKey,
     required this.removedItemBuilder,
     Iterable<E>? initialItems,
   }) : _items = List<E>.from(initialItems ?? <E>[]);
-
-  final List<E> _items;
-  int get length => _items.length;
-  AnimatedListState? get _animatedList => listKey.currentState;
 
   void insert(int index, E item) {
     _items.insert(index, item);

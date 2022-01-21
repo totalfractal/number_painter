@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
 
 class PainterProgressModel {
   static const table = 'Painters';

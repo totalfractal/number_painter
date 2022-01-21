@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:number_painter/core/models/db_models/painter_progress_model.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';

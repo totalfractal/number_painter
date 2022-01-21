@@ -4,6 +4,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:number_painter/core/models/color_list_model.dart';
 import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
 import 'package:number_painter/screens/svg_view/widgets/color_picker/color_item.dart';
+import 'package:number_painter/screens/svg_view/widgets/painter_inherited.dart';
 import 'package:number_painter/screens/svg_view/widgets/radial_painter.dart';
 import 'package:number_painter/screens/svg_view/widgets/radial_progress_painter.dart';
 
@@ -36,23 +37,6 @@ class ColorPickerState extends State<ColorPicker> with SingleTickerProviderState
     super.initState();
   }
 
-  List<Color> _calcPaintedColors() {
-    final colorsList = <Color>[];
-    for (final pair in _sortedShapes.entries) {
-      var paintedPair = false;
-      for (final shape in pair.value) {
-        if (shape.isPainted) {
-          paintedPair = true;
-          break;
-        }
-      }
-      if (!paintedPair) {
-        colorsList.add(pair.key);
-      }
-    }
-    return colorsList;
-  }
-
   @override
   void dispose() {
     super.dispose();
@@ -71,13 +55,51 @@ class ColorPickerState extends State<ColorPicker> with SingleTickerProviderState
     );
   }
 
+  // Remove the selected item from the list model.
+  void remove(Color color) {
+    final index = _animatedList.indexOf(color);
+    _animatedList.removeAt(index);
+    setState(() {
+      selectedColor = Colors.transparent;
+    });
+    if (_animatedList.length == 0) {
+      //Если в списке кончились цвета, то вызываем коллбэк об окончании раскраски
+      PainterInherited.of(context).onComplete();
+    }
+  }
+
+  void setPercent(double oldPerc, double perc) {
+    setState(() {
+      oldPercent = oldPerc;
+      currentPercent = perc;
+    });
+  }
+
+  //Составляем список незаврешенных цветов
+  List<Color> _calcPaintedColors() {
+    final colorsList = <Color>[];
+    for (final pair in _sortedShapes.entries) {
+      var paintedPair = true;
+      for (final shape in pair.value) {
+        if (!shape.isPainted) {
+          paintedPair = false;
+          break;
+        }
+      }
+      if (!paintedPair) {
+        colorsList.add(pair.key);
+      }
+    }
+    return colorsList;
+  }
+
   // Used to build list items that haven't been removed.
   Widget _buildItem(BuildContext context, int index, Animation<double> animation) {
     final currentColor = _animatedList[index];
     final colorIndex = _sortedShapes.keys.toList().indexOf(currentColor);
-    //final currentShapes = _sortedShapes.values.elementAt(colorIndex);
-    //final currentPercent = currentShapes.where((shape) => shape.isPainted).length / currentShapes.length;
-    //final oldPercent = currentPercent != 0 ? (currentShapes.where((shape) => shape.isPainted).length - 1) / currentShapes.length : .0;
+    final currentShapes = _sortedShapes.values.elementAt(colorIndex);
+    final currentPercent = currentShapes.where((shape) => shape.isPainted).length / currentShapes.length;
+    final oldPercent = currentPercent != 0 ? (currentShapes.where((shape) => shape.isPainted).length - 1) / currentShapes.length : .0;
 
     return SizeTransition(
       key: UniqueKey(),
@@ -113,28 +135,12 @@ class ColorPickerState extends State<ColorPicker> with SingleTickerProviderState
     return SlideTransition(
       position: Tween<Offset>(
         begin: const Offset(0, 1),
-        end: Offset(0, 0),
+        end: Offset.zero,
       ).animate(animation),
       child: ColorItem(
         number: _sortedShapes.keys.toList().indexOf(color), color: color, percentController: widget.percentController,
         // No gesture detector here: we don't want removed items to be interactive.
       ),
     );
-  }
-
-  // Remove the selected item from the list model.
-  void remove(Color color) {
-    var index = _animatedList.indexOf(color);
-    _animatedList.removeAt(index);
-    setState(() {
-      selectedColor = Colors.transparent;
-    });
-  }
-
-  void setPercent(double oldPerc, double perc) {
-    setState(() {
-      oldPercent = oldPerc;
-      currentPercent = perc;
-    });
   }
 }

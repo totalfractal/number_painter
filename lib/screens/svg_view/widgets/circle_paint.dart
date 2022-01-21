@@ -27,7 +27,7 @@ class ManyCirclesPaint extends StatelessWidget {
         for (final shape in selectedColoredShapes)
           SingleCirclePaint(
             percentController: percentController,
-            shape: shape,
+            coloringShape: shape,
             colorListKey: colorListKey,
           ),
       ],
@@ -36,11 +36,11 @@ class ManyCirclesPaint extends StatelessWidget {
 }
 
 class SingleCirclePaint extends StatefulWidget {
-  final ColoringShape shape;
+  final ColoringShape coloringShape;
   final AnimationController percentController;
   final GlobalKey<ColorPickerState> colorListKey;
   const SingleCirclePaint({
-    required this.shape,
+    required this.coloringShape,
     required this.percentController,
     required this.colorListKey,
     Key? key,
@@ -60,7 +60,7 @@ class _SingleCirclePaintState extends State<SingleCirclePaint> with SingleTicker
       //Считаем процент до окрашивания
       final oldPercent = _painterInherited.selectedShapes.where((shape) => shape.isPainted).length / _painterInherited.selectedShapes.length;
       //"Осторожно, окрашено" :)
-      widget.shape.shape.isPainted = true;
+      widget.coloringShape.shape.isPainted = true;
       //Рассчитываем процент после закрашивания
       final currentPercent = _painterInherited.selectedShapes.where((shape) => shape.isPainted).length / _painterInherited.selectedShapes.length;
       //Передаем эти проценты в ColorPicker
@@ -69,14 +69,14 @@ class _SingleCirclePaintState extends State<SingleCirclePaint> with SingleTicker
       widget.percentController.forward(from: 0).then((_) {
         //Удаляем цвет из пикера, если он выполнен на 100 процентов
         if (currentPercent == 1) {
-          widget.colorListKey.currentState!.remove(widget.shape.shape.fill);
+          widget.colorListKey.currentState!.remove(widget.coloringShape.shape.fill);
         }
       });
 
       //join нужен для сохранения в формате TEXT в БД
       _painterInherited.painterProgress.shapes = _painterInherited.svgShapes.join(' ');
       //Собственно сохраняем в БД
-      _painterInherited.dbProvider.updatePainter(_painterInherited.painterProgress);
+      //_painterInherited.dbProvider.updatePainter(_painterInherited.painterProgress);
     });
 
   @override
@@ -90,10 +90,10 @@ class _SingleCirclePaintState extends State<SingleCirclePaint> with SingleTicker
     return RepaintBoundary(
       child: CustomPaint(
         painter: CirclePainter(
-          position: widget.shape.cicrclePosition,
+          position: widget.coloringShape.cicrclePosition,
           // Радиус круга равен самой длиной стороне Rect данного Path
-          radius: _animationController.value * widget.shape.shape.transformedPath!.getBounds().longestSide,
-          selectedShape: widget.shape.shape,
+          radius: _animationController.value * widget.coloringShape.shape.transformedPath!.getBounds().longestSide,
+          selectedShape: widget.coloringShape.shape,
         ),
       ),
     );

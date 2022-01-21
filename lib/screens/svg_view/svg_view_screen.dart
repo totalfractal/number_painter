@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:matrix4_transform/matrix4_transform.dart';
 import 'package:number_painter/core/db_provider.dart';
 import 'package:number_painter/core/models/coloring_shape.dart';
 import 'package:number_painter/core/models/db_models/painter_progress_model.dart';
 import 'package:number_painter/core/models/svg_models/svg_line_model.dart';
 import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
+import 'package:number_painter/core/toast.dart';
 import 'package:number_painter/screens/svg_view/widgets/checkers_paint.dart';
 import 'package:number_painter/screens/svg_view/widgets/circle_paint.dart';
 import 'package:number_painter/screens/svg_view/widgets/color_picker/color_picker.dart';
@@ -116,7 +118,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
           for (var i = 0; i < _svgShapes.length; i++) {
             _svgShapes[i].isPainted = shapesList[i] == 'true';
           }
-         // await _dbProvider.deletePainter(painter.id);
+          // await _dbProvider.deletePainter(painter.id);
         } else {
           await _dbProvider.addNewPainter(_painterProgress);
         }
@@ -145,6 +147,12 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
               painterProgress: _painterProgress,
               svgShapes: _svgShapes,
               selectedShapes: _selectedShapes,
+              onComplete: () => setState(() {
+                _animateResetInitialize();
+                _painterProgress.isCompleted = true;
+                //_dbProvider.updatePainter(_painterProgress);
+                Toasts.showCompleteToast(context);
+              }),
               child: Column(
                 children: <Widget>[
                   const Spacer(),
@@ -170,7 +178,12 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                             SizedBox(
                               width: MediaQuery.of(context).size.width,
                               height: MediaQuery.of(context).size.height * 0.85,
-                              child: ManyCirclesPaint(notifier: _offsetNotifier, selectedColoredShapes: _selectedColoringShapes, percentController: _percentController, colorListKey: _colorListKey,),
+                              child: ManyCirclesPaint(
+                                notifier: _offsetNotifier,
+                                selectedColoredShapes: _selectedColoringShapes,
+                                percentController: _percentController,
+                                colorListKey: _colorListKey,
+                              ),
                             ),
                             SizedBox(
                               width: MediaQuery.of(context).size.width,
@@ -185,48 +198,19 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                                 onPointerUp: (e) {
                                   debugPrint('up');
                                   if (_selectedColor != null) {
-                                    final currentPercent = _selectedShapes.where((shape) => shape.isPainted).length / _selectedShapes.length;
-                                    if (currentPercent < 1) {
-                                      for (final shape in _selectedShapes) {
-                                        if (shape.transformedPath!.contains(e.localPosition)) {
-                                          if (_selectedShape != shape && !shape.isPainted) {
-                                            _offsetNotifier.value = e.localPosition;
-                                            setState(() {
-                                              _selectedShape = shape;
-                                              _selectedColoringShapes.add(ColoringShape(cicrclePosition: e.localPosition, shape: shape));
-                                            });
-                                            /* final nextPercent =
-                                                (_selectedShapes.where((shape) => shape.isPainted).length + 1) / _selectedShapes.length;
-                                            if (nextPercent == 1) {
-                                              if (_selectedColor != null) {
-                                                _colorListKey.currentState!.remove(_selectedColor!);
-                                                setState(() {
-                                                  _selectedColor = null;
-                                                  _selectedShapes = [];
-                                                });
-                                              }
-                                            } */
-                                          }
+                                    for (final shape in _selectedShapes) {
+                                      if (shape.transformedPath!.contains(e.localPosition)) {
+                                        if (_selectedShape != shape && !shape.isPainted) {
+                                          _offsetNotifier.value = e.localPosition;
+                                          setState(() {
+                                            _selectedShape = shape;
+                                            _selectedColoringShapes.add(ColoringShape(cicrclePosition: e.localPosition, shape: shape));
+                                          });
                                         }
                                       }
-                                    } 
+                                    }
                                   } else {
-                                    final mediaQuery = MediaQuery.of(context);
-                                    /*  */ ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        backgroundColor: Colors.blueGrey.withOpacity(0.2),
-                                        content: const Text(
-                                          'Выберите цвет из палитры',
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        behavior: SnackBarBehavior.floating,
-                                        margin: EdgeInsets.only(
-                                          bottom: mediaQuery.size.height - (mediaQuery.padding.bottom + mediaQuery.padding.top) * 2,
-                                          left: 50,
-                                          right: 50,
-                                        ),
-                                      ),
-                                    );
+                                    Toasts.showPickColorToast(context);
                                   }
                                 },
                                 child: RepaintBoundary(
@@ -293,12 +277,15 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                           child: const Icon(Icons.zoom_out_map_rounded),
                         ),
                       ),
-                      Positioned(
-                        top: MediaQuery.of(context).padding.top + 10,
-                        right: 10,
-                        child: HelpButton(
-                          transformationController: _transformationController,
-                          selectedShapes: _selectedShapes,
+                      Visibility(
+                        visible: !_painterProgress.isCompleted,
+                        child: Positioned(
+                          top: MediaQuery.of(context).padding.top + 10,
+                          right: 10,
+                          child: HelpButton(
+                            transformationController: _transformationController,
+                            selectedShapes: _selectedShapes,
+                          ),
                         ),
                       ),
                     ],
@@ -308,15 +295,18 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                     height: 1,
                     color: Colors.black,
                   ),
-                  Container(
-                    alignment: Alignment.center,
-                    height: 100,
-                    width: MediaQuery.of(context).size.width,
-                    child: ColorPicker(
-                      key: _colorListKey,
-                      percentController: _percentController,
-                      sortedShapes: _sortedShapes,
-                      onColorSelect: _callBackIndexColorOfColorPicker,
+                  Visibility(
+                    visible: !_painterProgress.isCompleted,
+                    child: Container(
+                      alignment: Alignment.center,
+                      height: 100,
+                      width: MediaQuery.of(context).size.width,
+                      child: ColorPicker(
+                        key: _colorListKey,
+                        percentController: _percentController,
+                        sortedShapes: _sortedShapes,
+                        onColorSelect: _callBackIndexColorOfColorPicker,
+                      ),
                     ),
                   ),
                 ],

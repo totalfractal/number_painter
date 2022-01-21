@@ -8,12 +8,14 @@ class PainterInherited extends InheritedWidget {
   final PainterProgressModel painterProgress;
   final List<SvgShapeModel> svgShapes;
   final List<SvgShapeModel> selectedShapes;
+  final ValueGetter onComplete;
 
   const PainterInherited({
     required this.dbProvider,
     required this.painterProgress,
     required this.svgShapes,
     required this.selectedShapes,
+    required this.onComplete,
     required Widget child,
     Key? key,
   }) : super(child: child, key: key);
