@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
-import 'package:number_painter/screens/svg_view/widgets/fade_painter.dart';
+import 'package:number_painter/screens/svg_view/widgets/fade_paint/fade_painter.dart';
 
 class FadePaint extends StatefulWidget {
   final AnimationController fadeController;

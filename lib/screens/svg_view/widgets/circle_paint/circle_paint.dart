@@ -3,7 +3,8 @@ import 'package:number_painter/core/db_provider.dart';
 import 'package:number_painter/core/models/coloring_shape.dart';
 import 'package:number_painter/core/models/db_models/painter_progress_model.dart';
 import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
-import 'package:number_painter/screens/svg_view/widgets/circle_painter.dart';
+import 'package:number_painter/core/painter_tools.dart';
+import 'package:number_painter/screens/svg_view/widgets/circle_paint/circle_painter.dart';
 import 'package:number_painter/screens/svg_view/widgets/color_picker/color_picker.dart';
 import 'package:number_painter/screens/svg_view/widgets/painter_inherited.dart';
 
@@ -76,7 +77,7 @@ class _SingleCirclePaintState extends State<SingleCirclePaint> with SingleTicker
       //join нужен для сохранения в формате TEXT в БД
       _painterInherited.painterProgress.shapes = _painterInherited.svgShapes.join(' ');
       //Собственно сохраняем в БД
-      //_painterInherited.dbProvider.updatePainter(_painterInherited.painterProgress);
+      PainterTools.dbProvider.updatePainter(_painterInherited.painterProgress);
     });
 
   @override

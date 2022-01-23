@@ -5,7 +5,6 @@ import 'package:number_painter/core/models/color_list_model.dart';
 import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
 import 'package:number_painter/screens/svg_view/widgets/color_picker/color_item.dart';
 import 'package:number_painter/screens/svg_view/widgets/painter_inherited.dart';
-import 'package:number_painter/screens/svg_view/widgets/radial_painter.dart';
 import 'package:number_painter/screens/svg_view/widgets/radial_progress_painter.dart';
 
 class ColorPicker extends StatefulWidget {

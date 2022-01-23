@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:number_painter/screens/svg_view/widgets/checkers_painter.dart';
+import 'package:number_painter/screens/svg_view/widgets/checkers_paint/checkers_painter.dart';
 
 class CheckersPaint extends StatelessWidget {
   const CheckersPaint({

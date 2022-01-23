@@ -26,7 +26,7 @@ class SvgShapeModel {
     return SvgShapeModel._(
       svgElement.getAttribute('id').toString(),
       svgElement.getAttribute('d').toString(),
-      HexColor(svgElement.getAttribute('fill').toString() == 'black' ? '#FF0000' : svgElement.getAttribute('fill').toString()),
+      HexColor(svgElement.getAttribute('fill').toString() == 'black' ? '#000000' : svgElement.getAttribute('fill').toString()),
       //svgElement.findElements('path').map<ModelSvgShape>((e) => ModelSvgShape.fromElement(e)).toList(),
     );
   }
@@ -86,16 +86,28 @@ class SvgShapeModel {
           minWidth: 0.5,
           maxWidth: 100,
         );
-      for (var dx = x; dx < bounds.topRight.dx; dx += 1.0) {
-        for (var dy = y; dy > bounds.topRight.dy; dy -= 1.0) {
+      for (var dx = x; dx < bounds.topRight.dx; dx += 3.0) {
+        if (bounds.topRight.dx - dx < 3.0) {
+          dx = bounds.topRight.dx;
+        }
+        for (var dy = y; dy > bounds.topRight.dy; dy -= 3.0) {
+          if (dy - bounds.topRight.dy < 3.0) {
+            dy = bounds.topRight.dy;
+          }
           if (path.contains(Offset(dx.toDouble(), dy.toDouble()))) {
             textRect = Rect.fromCenter(
               center: Offset(dx, dy) /* - Offset(txtSize / 5, -txtSize / 8) */,
-              width: textPainter.width + 3,
-              height: textPainter.height + 3,
+              width: txtSize > 4 ? textPainter.width + 3 : textPainter.width + 1,
+              height: txtSize > 4 ? textPainter.height + 3 : textPainter.height + 1,
             );
             for (var i = textRect.topLeft.dx; i < textRect.topRight.dx; i += 1.0) {
+              /* if (textRect.topRight.dx - i < 5.0) {
+          i = textRect.topRight.dx ;
+        } */
               for (var j = textRect.bottomRight.dy; j > textRect.topRight.dy; j -= 1.0) {
+                /* if (j - textRect.topRight.dy < 5.0) {
+          j = textRect.topRight.dy;
+        } */
                 if (path.contains(Offset(i, j))) {
                   isInclude = true;
                 } else {
@@ -122,7 +134,7 @@ class SvgShapeModel {
         if (!isInclude) {
           continue;
         } else {
-          debugPrint('include size: ${txtSize.toString()}');
+          //debugPrint('include size: ${txtSize.toString()}');
           /* debugPrint('center: ${bounds.center}');
           debugPrint('included: $x,$y'); */
           txtOffset = Offset(x, y);
@@ -133,8 +145,28 @@ class SvgShapeModel {
         //debugPrint('not include size: ${txtSize.toString()}');
         txtSize -= 0.5;
         if (txtSize <= 0.1) {
-          isInclude = true;
           txtSize = 1;
+          debugPrint('try to include little piece of shit');
+          for (var dx = bounds.topLeft.dx + (bounds.topRight.dx /2); dx < bounds.topRight.dx; dx += 3.0) {
+            if (bounds.topRight.dx - dx < 3.0) {
+              dx = bounds.topRight.dx;
+            }
+            for (var dy = bounds.bottomRight.dy - (bounds.topRight.dy/2); dy > bounds.topRight.dy; dy -= 3.0) {
+              if (dy - bounds.topRight.dy < 3.0) {
+                dy = bounds.topRight.dy;
+              }
+              if (path.contains(Offset(dx.toDouble(), dy.toDouble()))) {
+                textRect = Rect.fromCenter(
+                  center: Offset(dx, dy) /* - Offset(txtSize / 5, -txtSize / 8) */,
+                  width: textPainter.width ,
+                  height: textPainter.height,
+                );
+              }
+            }
+          }
+
+          isInclude = true;
+          
         }
       }
     } while (!isInclude);
