@@ -1,15 +1,11 @@
-import 'dart:isolate';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:matrix4_transform/matrix4_transform.dart';
-import 'package:number_painter/core/db_provider.dart';
 import 'package:number_painter/core/models/coloring_shape.dart';
 import 'package:number_painter/core/models/db_models/painter_progress_model.dart';
 import 'package:number_painter/core/models/svg_models/svg_line_model.dart';
 import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
 import 'package:number_painter/core/painter_tools.dart';
+import 'package:number_painter/core/rewards.dart';
 import 'package:number_painter/core/toast.dart';
 import 'package:number_painter/screens/svg_view/widgets/checkers_paint/checkers_paint.dart';
 import 'package:number_painter/screens/svg_view/widgets/circle_paint/circle_paint.dart';
@@ -20,9 +16,6 @@ import 'package:number_painter/screens/svg_view/widgets/line_paint/line_paint.da
 import 'package:number_painter/screens/svg_view/widgets/number_painter.dart';
 import 'package:number_painter/screens/svg_view/widgets/painter_inherited.dart';
 import 'package:number_painter/screens/svg_view/widgets/shape_painter.dart';
-import 'package:xml/xml.dart';
-
-//TODO: может сделать InheritedWidget для переброса инфы?
 
 class SvgViewScreen extends StatefulWidget {
   final PainterProgressModel painterProgressModel;
@@ -47,9 +40,6 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   final _offsetNotifier = ValueNotifier(Offset.zero);
   final _scaleNotifier = ValueNotifier(1.0);
 
-  //final List<SvgShapeModel> _svgShapes = [];
-  //final List<SvgLineModel> _svgLines = [];
-  //final Map<Color, List<SvgShapeModel>> _sortedShapes = {};
   final List<ColoringShape> _selectedColoringShapes = [];
 
   final GlobalKey<ColorPickerState> _colorListKey = GlobalKey<ColorPickerState>();
@@ -57,18 +47,18 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   late final _fadeController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
   late final _percentController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
 
-  //late final PainterProgressModel _painterProgress;
-
   late final AnimationController _controllerReset = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 400),
   );
 
-  //final _dbProvider = DBProvider();
-  late final _transformationController = TransformationController();
+  final _transformationController = TransformationController();
 
-  //Size svgSize = Size.zero;
-  //FittedSizes fittedSvgSize = const FittedSizes(Size.zero, Size.zero);
+  late final _rewards = Rewards()..createRewardedAd();
+
+  bool isInit = false;
+
+  FToast? _currentToast;
 
   Animation<Matrix4>? _animationReset;
 
@@ -76,7 +66,6 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   SvgShapeModel _selectedShape = SvgShapeModel.epmty();
 
   Color? _selectedColor;
-  bool _isInit = false;
 
   @override
   void dispose() {
@@ -92,7 +81,6 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
     _transformationController.addListener(() {
       _scaleNotifier.value = _transformationController.value.getMaxScaleOnAxis();
     });
-    //_initPainter();
   }
 
   @override
@@ -103,7 +91,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
       backgroundColor: Colors.white,
       body:
           // Этот виджет нужен для переброса данных в другие виджеты
-          // Самый яркий пример в виджете SingleCirclePaint
+          //c помощью PainterInherited.of(context)
           PainterInherited(
         painterProgress: widget.painterProgressModel,
         svgShapes: widget.svgShapes,
@@ -112,7 +100,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
           _animateResetInitialize();
           widget.painterProgressModel.isCompleted = true;
           PainterTools.dbProvider.updatePainter(widget.painterProgressModel);
-          Toasts.showCompleteToast(context);
+          Toasts.showCompleteToast(context, 10);
         }),
         child: Column(
           children: <Widget>[
@@ -154,25 +142,9 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                       SizedBox(
                         width: _size.width,
                         height: _size.height * 0.85,
-                        child: //SvgPicture.string(stringSvg),
-                            Listener(
+                        child: Listener(
                           onPointerUp: (e) {
-                            debugPrint('up');
-                            if (_selectedColor != null) {
-                              for (final shape in _selectedShapes) {
-                                if (shape.transformedPath!.contains(e.localPosition)) {
-                                  if (_selectedShape != shape && !shape.isPainted) {
-                                    _offsetNotifier.value = e.localPosition;
-                                    setState(() {
-                                      _selectedShape = shape;
-                                      _selectedColoringShapes.add(ColoringShape(cicrclePosition: e.localPosition, shape: shape));
-                                    });
-                                  }
-                                }
-                              }
-                            } else {
-                              Toasts.showPickColorToast(context);
-                            }
+                            _onTapUp(e, context);
                           },
                           child: RepaintBoundary(
                             child: CustomPaint(
@@ -184,7 +156,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                                 lines: widget.svgLines,
                                 sortedShapes: widget.sortedShapes,
                                 selectedColor: _selectedColor,
-                                isInit: _isInit,
+                                isInit: isInit,
                                 center: Offset(
                                   _size.width / 2,
                                   _size.height * 0.85 / 2,
@@ -251,6 +223,18 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                     ),
                   ),
                 ),
+                Positioned(
+                  bottom: MediaQuery.of(context).padding.bottom + 10,
+                  left: 10,
+                  child: IconButton(
+                    onPressed: _rewards.showRewardedAd,
+                    icon: const Icon(
+                      Icons.monetization_on_outlined,
+                      size: 50,
+                      color: Colors.orangeAccent,
+                    ),
+                  ),
+                ),
               ],
             ),
             const Spacer(),
@@ -276,6 +260,34 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
         ),
       ),
     );
+  }
+
+  void _onTapUp(PointerUpEvent e, BuildContext context) {
+    if (_selectedColor != null) {
+      for (final shape in _selectedShapes) {
+        if (shape.transformedPath!.contains(e.localPosition)) {
+          if (_selectedShape != shape && !shape.isPainted) {
+            _offsetNotifier.value = e.localPosition;
+            setState(() {
+              _selectedShape = shape;
+              _selectedColoringShapes.add(ColoringShape(cicrclePosition: e.localPosition, shape: shape));
+            });
+          }
+        }
+      }
+    } else {
+      _showPickToast(context);
+    }
+  }
+
+  void _showPickToast(BuildContext context) {
+    if (_currentToast == null) {
+      _currentToast = Toasts.showPickColorToast(context, 10);
+      Future<void>.delayed(const Duration(seconds: 5), () {
+        _currentToast?.removeCustomToast();
+        _currentToast = null;
+      });
+    }
   }
 
 /*   void _initPainter() {

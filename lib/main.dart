@@ -1,18 +1,17 @@
 import 'dart:convert';
 
-import 'package:flutter/services.dart' show rootBundle;
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:number_painter/core/painter_tools.dart';
 import 'package:number_painter/screens/loading_screen.dart';
-import 'package:number_painter/screens/svg_view/svg_view_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
   runApp(
     const MaterialApp(
-      home: PainterChoice(), /* SvgViewScreen(
-        id: 'mandala2-01',
-      ), */
+      home: PainterChoice(),
     ),
   );
 }
@@ -56,10 +55,10 @@ class _PainterChoiceState extends State<PainterChoice> {
     // >> To get paths you need these 2 lines
     final manifestContent = await rootBundle.loadString('AssetManifest.json');
 
-    final Map<String, dynamic> manifestMap = json.decode(manifestContent) as Map<String, dynamic>;
+    final manifestMap = json.decode(manifestContent) as Map<String, dynamic>;
     // >> To get paths you need these 2 lines
     setState(() {
-      _list.addAll(manifestMap.keys.where((String key) => key.contains('assets/')).where((String key) => key.contains('.svg')));
+      _list.addAll(manifestMap.keys.where((key) => key.contains('assets/')).where((key) => key.contains('.svg')));
     });
   }
 }

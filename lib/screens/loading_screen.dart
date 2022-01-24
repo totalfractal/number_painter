@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:number_painter/core/models/coloring_shape.dart';
 import 'package:number_painter/core/models/db_models/painter_progress_model.dart';
 import 'package:number_painter/core/models/svg_models/svg_line_model.dart';
 import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
@@ -55,7 +54,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
   Future<void> _initPainter() async {
     _fittedSvgSize = PainterTools.getFittedSize(context, widget.svgString);
     PainterTools.setLinesAndShapes(context, widget.svgString, _svgShapes, _svgLines, _fittedSvgSize);
-    var _painterProgress = PainterProgressModel.fromScratch(id: widget.id, shapes: _svgShapes.join(' '), isCompleted: false);
+    final _painterProgress = PainterProgressModel.fromScratch(id: widget.id, shapes: _svgShapes.join(' '), isCompleted: false);
     await PainterTools.getDbPainter(widget.id, _svgShapes, _painterProgress).then((value) {
       //compute(PainterTools.setSortedShapes, _svgShapes).then((value) => null);
       _sortedShapes.addAll(PainterTools.setSortedShapes(_svgShapes));

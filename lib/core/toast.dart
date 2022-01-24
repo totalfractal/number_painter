@@ -39,19 +39,19 @@ class Toasts {
     ),
   );
 
-  static void showCompleteToast(BuildContext context) {
-    FToast()..init(context)..showToast(
+  static FToast showCompleteToast(BuildContext context, int seconds) {
+    return FToast()..init(context)..showToast(
       child: _completeToast,
       gravity: ToastGravity.TOP,
-      toastDuration: const Duration(seconds: 2),
+      toastDuration: Duration(seconds: seconds),
     );
   }
 
-  static void showPickColorToast(BuildContext context) {
-    FToast()..init(context)..showToast(
+  static FToast showPickColorToast(BuildContext context, int seconds) {
+    return FToast()..init(context)..showToast(
       child: _pickColorToast,
       gravity: ToastGravity.TOP,
-      toastDuration: const Duration(seconds: 2),
+      toastDuration:  Duration(seconds: seconds),
     );
   }
 

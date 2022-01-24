@@ -1,4 +1,3 @@
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
@@ -14,7 +13,6 @@ class NumberPainter extends CustomPainter {
       textAlign: TextAlign.center,
       textDirection: TextDirection.rtl,
     );
-    //canvas.clipRect(Offset.zero & size);
     for (final shape in shapes) {
       final textStyle = TextStyle(
         color: Colors.black,
@@ -30,14 +28,6 @@ class NumberPainter extends CustomPainter {
           minWidth: 0.5,
           maxWidth: 100,
         );
-      /* canvas.drawPoints(
-          PointMode.points,
-          [Offset(shape.number.dx, shape.number.dy)],
-          Paint()
-            ..color = Colors.redAccent
-            ..strokeWidth = 1
-            ..style = PaintingStyle.fill);
-      canvas.drawRect(Rect.fromCenter(center: Offset(shape.number.dx, shape.number.dy), height: textPainter.height, width: textPainter.width)  , Paint()..color = Colors.redAccent..strokeWidth = 1..style = PaintingStyle.stroke); */
       if (!shape.isPainted) {
         if (scale > 0 && shape.number.size >= 10 && shape.number.size <= 16) {
           textPainter.paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
@@ -63,7 +53,7 @@ class NumberPainter extends CustomPainter {
           textPainter.paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
         }
 
-        if (scale > 8 && shape.number.size >= 1 && shape.number.size < 3) {
+        if (scale > 8 && shape.number.size > 1 && shape.number.size < 3) {
           textPainter.paint(canvas, Offset(shape.number.dx - shape.number.size / 2, shape.number.dy - shape.number.size / 2));
         }
       }

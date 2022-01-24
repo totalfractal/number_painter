@@ -44,6 +44,7 @@ dependencies:
   path: ^1.8.0
   matrix4_transform: ^2.0.1
   fluttertoast: ^8.0.8
+  google_mobile_ads: ^1.0.1
 
 dev_dependencies:
   flutter_test:

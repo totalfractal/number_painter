@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:matrix4_transform/matrix4_transform.dart';
 import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
+import 'package:number_painter/core/rewards.dart';
 
 class HelpButton extends StatefulWidget {
   final TransformationController transformationController;
@@ -69,7 +70,7 @@ class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateM
               ),
               height: 30,
               width: 30,
-              child: Text('2'),
+              child: Text(helpCount.toString()),
             ),
           ),
         ],

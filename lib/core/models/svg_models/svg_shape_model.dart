@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:path_drawing/path_drawing.dart';
@@ -50,21 +49,12 @@ class SvgShapeModel {
 
   void setNumberProperties(int num) {
     final path = transformedPath;
-    final metrics = path!.computeMetrics();
-    final bounds = path.getBounds();
+    final bounds = path!.getBounds();
     var txtSize = 16.0;
-    //debugPrint(txtSize.toString());
-    /* for (final metric in metrics) {
-      txtSize += metric.length.toDouble();q
-    }
-    txtSize *= 0.05; */
-
-    // print(bounds.longestSide);
 
     var textRect = Rect.fromCenter(center: bounds.center - Offset(txtSize / 5, -txtSize / 8), width: txtSize / 2, height: txtSize);
     var isInclude = false;
 
-    var txtOffset = bounds.center;
     var x = bounds.topLeft.dx;
     var y = bounds.bottomRight.dy;
     do {
@@ -86,28 +76,22 @@ class SvgShapeModel {
           minWidth: 0.5,
           maxWidth: 100,
         );
-      for (var dx = x; dx < bounds.topRight.dx; dx += 3.0) {
-        if (bounds.topRight.dx - dx < 3.0) {
-          dx = bounds.topRight.dx;
-        }
-        for (var dy = y; dy > bounds.topRight.dy; dy -= 3.0) {
-          if (dy - bounds.topRight.dy < 3.0) {
-            dy = bounds.topRight.dy;
-          }
+      for (var dx = x; dx < bounds.topRight.dx; dx = txtSize > 3 ? dx + 5.0 : dx + 1.0) {
+        for (var dy = y; dy > bounds.topRight.dy; dy = txtSize > 3 ? dy - 5.0 : dy - 1.0) {
           if (path.contains(Offset(dx.toDouble(), dy.toDouble()))) {
             textRect = Rect.fromCenter(
-              center: Offset(dx, dy) /* - Offset(txtSize / 5, -txtSize / 8) */,
-              width: txtSize > 4 ? textPainter.width + 3 : textPainter.width + 1,
-              height: txtSize > 4 ? textPainter.height + 3 : textPainter.height + 1,
+              center: Offset(dx, dy),
+              width: txtSize > 3 ? textPainter.width + 3 : textPainter.width + 1,
+              height: txtSize > 3 ? textPainter.height + 3 : textPainter.height + 1,
             );
             for (var i = textRect.topLeft.dx; i < textRect.topRight.dx; i += 1.0) {
-              /* if (textRect.topRight.dx - i < 5.0) {
-          i = textRect.topRight.dx ;
-        } */
+              if (textRect.topRight.dx - i < 1.0) {
+                i = textRect.topRight.dx;
+              }
               for (var j = textRect.bottomRight.dy; j > textRect.topRight.dy; j -= 1.0) {
-                /* if (j - textRect.topRight.dy < 5.0) {
-          j = textRect.topRight.dy;
-        } */
+                if (j - textRect.topRight.dy < 1.0) {
+                  j = textRect.topRight.dy;
+                }
                 if (path.contains(Offset(i, j))) {
                   isInclude = true;
                 } else {
@@ -134,31 +118,25 @@ class SvgShapeModel {
         if (!isInclude) {
           continue;
         } else {
-          //debugPrint('include size: ${txtSize.toString()}');
-          /* debugPrint('center: ${bounds.center}');
-          debugPrint('included: $x,$y'); */
-          txtOffset = Offset(x, y);
           break;
         }
       }
       if (!isInclude) {
-        //debugPrint('not include size: ${txtSize.toString()}');
         txtSize -= 0.5;
         if (txtSize <= 0.1) {
           txtSize = 1;
-          debugPrint('try to include little piece of shit');
-          for (var dx = bounds.topLeft.dx + (bounds.topRight.dx /2); dx < bounds.topRight.dx; dx += 3.0) {
+          for (var dx = bounds.topLeft.dx + (bounds.topRight.dx / 2); dx < bounds.topRight.dx; dx += 3.0) {
             if (bounds.topRight.dx - dx < 3.0) {
               dx = bounds.topRight.dx;
             }
-            for (var dy = bounds.bottomRight.dy - (bounds.topRight.dy/2); dy > bounds.topRight.dy; dy -= 3.0) {
+            for (var dy = bounds.bottomRight.dy - (bounds.topRight.dy / 2); dy > bounds.topRight.dy; dy -= 3.0) {
               if (dy - bounds.topRight.dy < 3.0) {
                 dy = bounds.topRight.dy;
               }
               if (path.contains(Offset(dx.toDouble(), dy.toDouble()))) {
                 textRect = Rect.fromCenter(
-                  center: Offset(dx, dy) /* - Offset(txtSize / 5, -txtSize / 8) */,
-                  width: textPainter.width ,
+                  center: Offset(dx, dy),
+                  width: textPainter.width,
                   height: textPainter.height,
                 );
               }
@@ -166,7 +144,6 @@ class SvgShapeModel {
           }
 
           isInclude = true;
-          
         }
       }
     } while (!isInclude);
