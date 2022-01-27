@@ -7,12 +7,14 @@ class PainterInherited extends InheritedWidget {
   final List<SvgShapeModel> svgShapes;
   final List<SvgShapeModel> selectedShapes;
   final ValueGetter onComplete;
+  final VoidCallback rewardCallback;
 
   const PainterInherited({
     required this.painterProgress,
     required this.svgShapes,
     required this.selectedShapes,
     required this.onComplete,
+    required this.rewardCallback,
     required Widget child,
     Key? key,
   }) : super(child: child, key: key);

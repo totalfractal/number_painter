@@ -15,7 +15,7 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
-  //late final PainterProgressModel _painterProgress;
+  late final PainterProgressModel _painterProgress = PainterProgressModel.fromScratch(id: widget.id, shapes: _svgShapes.join(' '), isCompleted: false);
   final List<SvgShapeModel> _svgShapes = [];
   final List<SvgLineModel> _svgLines = [];
   final Map<Color, List<SvgShapeModel>> _sortedShapes = {};
@@ -27,7 +27,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
       (_) => Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (context) => SvgViewScreen(
-            painterProgressModel: PainterProgressModel.fromScratch(id: widget.id, shapes: _svgShapes.join(' '), isCompleted: false),
+            painterProgressModel: _painterProgress,
             svgShapes: _svgShapes,
             svgLines: _svgLines,
             sortedShapes: _sortedShapes,
@@ -54,10 +54,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
   Future<void> _initPainter() async {
     _fittedSvgSize = PainterTools.getFittedSize(context, widget.svgString);
     PainterTools.setLinesAndShapes(context, widget.svgString, _svgShapes, _svgLines, _fittedSvgSize);
-    final _painterProgress = PainterProgressModel.fromScratch(id: widget.id, shapes: _svgShapes.join(' '), isCompleted: false);
     await PainterTools.getDbPainter(widget.id, _svgShapes, _painterProgress).then((value) {
       //compute(PainterTools.setSortedShapes, _svgShapes).then((value) => null);
       _sortedShapes.addAll(PainterTools.setSortedShapes(_svgShapes));
+      
     });
   }
 }

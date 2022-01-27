@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:number_painter/core/models/coloring_shape.dart';
@@ -15,7 +17,9 @@ import 'package:number_painter/screens/svg_view/widgets/help_button.dart';
 import 'package:number_painter/screens/svg_view/widgets/line_paint/line_paint.dart';
 import 'package:number_painter/screens/svg_view/widgets/number_painter.dart';
 import 'package:number_painter/screens/svg_view/widgets/painter_inherited.dart';
+import 'package:number_painter/screens/svg_view/widgets/reward_button.dart';
 import 'package:number_painter/screens/svg_view/widgets/shape_painter.dart';
+import 'package:number_painter/screens/svg_view/widgets/zoom_out_button.dart';
 
 class SvgViewScreen extends StatefulWidget {
   final PainterProgressModel painterProgressModel;
@@ -39,6 +43,8 @@ class SvgViewScreen extends StatefulWidget {
 class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateMixin {
   final _offsetNotifier = ValueNotifier(Offset.zero);
   final _scaleNotifier = ValueNotifier(1.0);
+  final _rewardNotifier = ValueNotifier(0.0);
+
 
   final List<ColoringShape> _selectedColoringShapes = [];
 
@@ -47,20 +53,16 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   late final _fadeController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
   late final _percentController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
 
-  late final AnimationController _controllerReset = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 400),
-  );
 
   final _transformationController = TransformationController();
 
-  late final _rewards = Rewards()..createRewardedAd();
+  final _rewards = Rewards();
+
+  final _zoomKey = GlobalKey<ZoomOutButtonState>();
 
   bool isInit = false;
 
   FToast? _currentToast;
-
-  Animation<Matrix4>? _animationReset;
 
   List<SvgShapeModel> _selectedShapes = [];
   SvgShapeModel _selectedShape = SvgShapeModel.epmty();
@@ -81,6 +83,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
     _transformationController.addListener(() {
       _scaleNotifier.value = _transformationController.value.getMaxScaleOnAxis();
     });
+    _rewards.createRewardedAd();
   }
 
   @override
@@ -97,14 +100,15 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
         svgShapes: widget.svgShapes,
         selectedShapes: _selectedShapes,
         onComplete: () => setState(() {
-          _animateResetInitialize();
+          _zoomKey.currentState!.animateResetInitialize();
           widget.painterProgressModel.isCompleted = true;
           PainterTools.dbProvider.updatePainter(widget.painterProgressModel);
           Toasts.showCompleteToast(context, 10);
-        }),
+        },
+        ),
+        rewardCallback: () => setState(() {}),
         child: Column(
           children: <Widget>[
-            const Spacer(),
             Stack(
               children: [
                 InteractiveViewer(
@@ -113,7 +117,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                     //debugPrint(details.scale.toString());
                     _scaleNotifier.value = _transformationController.value.getMaxScaleOnAxis();
                   },
-                  onInteractionStart: _onInteractionStart,
+                  //onInteractionStart: _onInteractionStart,
                   minScale: 0.1,
                   maxScale: 100.0,
                   child: Stack(
@@ -132,6 +136,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                           selectedColoredShapes: _selectedColoringShapes,
                           percentController: _percentController,
                           colorListKey: _colorListKey,
+                          onEndCircle: () => setState(() {}),
                         ),
                       ),
                       SizedBox(
@@ -196,10 +201,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                 Positioned(
                   bottom: 10,
                   right: 10,
-                  child: ElevatedButton(
-                    onPressed: _animateResetInitialize,
-                    child: const Icon(Icons.zoom_out_map_rounded),
-                  ),
+                  child: ZoomOutButton(key: _zoomKey, transformController: _transformationController),
                 ),
                 Visibility(
                   visible: !widget.painterProgressModel.isCompleted,
@@ -209,6 +211,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                     child: HelpButton(
                       transformationController: _transformationController,
                       selectedShapes: _selectedShapes,
+                      rewards: _rewards,
                     ),
                   ),
                 ),
@@ -223,18 +226,8 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                     ),
                   ),
                 ),
-                Positioned(
-                  bottom: MediaQuery.of(context).padding.bottom + 10,
-                  left: 10,
-                  child: IconButton(
-                    onPressed: _rewards.showRewardedAd,
-                    icon: const Icon(
-                      Icons.monetization_on_outlined,
-                      size: 50,
-                      color: Colors.orangeAccent,
-                    ),
-                  ),
-                ),
+                Visibility(
+                  visible: !widget.painterProgressModel.isCompleted, child: RewardButton(rewards: _rewards,),),
               ],
             ),
             const Spacer(),
@@ -272,6 +265,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
               _selectedShape = shape;
               _selectedColoringShapes.add(ColoringShape(cicrclePosition: e.localPosition, shape: shape));
             });
+            break;
           }
         }
       }
@@ -290,20 +284,6 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
     }
   }
 
-/*   void _initPainter() {
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
-      fittedSvgSize = PainterTools.getFittedSize(context, widget.svgString);
-      PainterTools.setLinesAndShapes(context, widget.svgString, _svgShapes, _svgLines, fittedSvgSize);
-      _painterProgress = PainterProgressModel.fromScratch(id: widget.id, shapes: _svgShapes.join(' '), isCompleted: false);
-      PainterTools.getDbPainter(widget.id, _svgShapes, _painterProgress).then((value) {
-        //compute(PainterTools.setSortedShapes, _svgShapes).then((value) => null);
-        _sortedShapes.addAll(PainterTools.setSortedShapes(_svgShapes));
-        _isInit = true;
-        setState(() {});
-      });
-    });
-  } */
-
   void _callBackIndexColorOfColorPicker(Color selectedColor) {
     if (_selectedColor != selectedColor) {
       _selectedColoringShapes.clear();
@@ -320,40 +300,5 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
       _fadeController.forward(from: 0.0);
     }
     debugPrint('_callBackIndexColorOfColorPicker: $_selectedColor');
-  }
-
-  void _onAnimateReset() {
-    _transformationController.value = _animationReset!.value;
-    if (!_controllerReset.isAnimating) {
-      _animationReset!.removeListener(_onAnimateReset);
-      _animationReset = null;
-      _controllerReset.reset();
-    }
-  }
-
-  void _animateResetInitialize() {
-    _controllerReset.reset();
-    _animationReset = Matrix4Tween(
-      begin: _transformationController.value,
-      end: Matrix4.identity(),
-    ).animate(_controllerReset);
-    _animationReset!.addListener(_onAnimateReset);
-    _controllerReset.forward();
-  }
-
-// Stop a running reset to home transform animation.
-  void _animateResetStop() {
-    _controllerReset.stop();
-    _animationReset?.removeListener(_onAnimateReset);
-    _animationReset = null;
-    _controllerReset.reset();
-  }
-
-  void _onInteractionStart(ScaleStartDetails details) {
-    // If the user tries to cause a transformation while the reset animation is
-    // running, cancel the reset animation.
-    if (_controllerReset.status == AnimationStatus.forward) {
-      _animateResetStop();
-    }
   }
 }

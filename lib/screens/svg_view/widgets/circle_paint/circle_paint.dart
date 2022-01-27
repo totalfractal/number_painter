@@ -13,11 +13,13 @@ class ManyCirclesPaint extends StatelessWidget {
   final List<ColoringShape> selectedColoredShapes;
   final AnimationController percentController;
   final GlobalKey<ColorPickerState> colorListKey;
+  final VoidCallback onEndCircle;
   const ManyCirclesPaint({
     required this.notifier,
     required this.selectedColoredShapes,
     required this.percentController,
     required this.colorListKey,
+    required this.onEndCircle,
     Key? key,
   }) : super(key: key);
 
@@ -30,6 +32,7 @@ class ManyCirclesPaint extends StatelessWidget {
             percentController: percentController,
             coloringShape: shape,
             colorListKey: colorListKey,
+            onEndCircle: onEndCircle,
           ),
       ],
     );
@@ -40,10 +43,12 @@ class SingleCirclePaint extends StatefulWidget {
   final ColoringShape coloringShape;
   final AnimationController percentController;
   final GlobalKey<ColorPickerState> colorListKey;
+  final VoidCallback onEndCircle;
   const SingleCirclePaint({
     required this.coloringShape,
     required this.percentController,
     required this.colorListKey,
+    required this.onEndCircle,
     Key? key,
   }) : super(key: key);
 
@@ -65,7 +70,7 @@ class _SingleCirclePaintState extends State<SingleCirclePaint> with SingleTicker
       //Рассчитываем процент после закрашивания
       final currentPercent = _painterInherited.selectedShapes.where((shape) => shape.isPainted).length / _painterInherited.selectedShapes.length;
       //Передаем эти проценты в ColorPicker
-      widget.colorListKey.currentState!.setPercent(oldPercent,currentPercent);
+      widget.colorListKey.currentState!.setPercent(oldPercent, currentPercent);
       //Запускаем анимацию процентов в ColorItem
       widget.percentController.forward(from: 0).then((_) {
         //Удаляем цвет из пикера, если он выполнен на 100 процентов
@@ -78,6 +83,8 @@ class _SingleCirclePaintState extends State<SingleCirclePaint> with SingleTicker
       _painterInherited.painterProgress.shapes = _painterInherited.svgShapes.join(' ');
       //Собственно сохраняем в БД
       PainterTools.dbProvider.updatePainter(_painterInherited.painterProgress);
+      //Коллбек после раскраски
+      widget.onEndCircle();
     });
 
   @override

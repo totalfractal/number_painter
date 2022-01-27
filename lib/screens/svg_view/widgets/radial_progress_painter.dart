@@ -21,7 +21,6 @@ class RadialProgressPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    debugPrint(_percent.value.toString());
     final bgLine = Paint()
       ..color = bgColor
       ..strokeCap = StrokeCap.round

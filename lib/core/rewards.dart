@@ -15,8 +15,8 @@ class Rewards {
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
           debugPrint('$ad loaded.');
-          rewardedAd = ad;
           numRewardedLoadAttempts = 0;
+          rewardedAd = ad;
         },
         onAdFailedToLoad: (error) {
           debugPrint('RewardedAd failed to load: $error');
@@ -30,13 +30,13 @@ class Rewards {
     );
   }
 
-  void showRewardedAd() {
+  void showRewardedAd(VoidCallback onRewarded) {
     if (rewardedAd == null) {
       debugPrint('Warning: attempt to show rewarded before loaded.');
+      createRewardedAd();
       return;
     }
     rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdShowedFullScreenContent: (ad) => helpCount++,
       onAdDismissedFullScreenContent: (ad) {
         debugPrint('$ad onAdDismissedFullScreenContent.');
         ad.dispose();
@@ -52,8 +52,9 @@ class Rewards {
     rewardedAd!.setImmersiveMode(true);
     rewardedAd!.show(onUserEarnedReward: (ad, reward) {
       debugPrint('$ad with reward $RewardItem(${reward.amount}, ${reward.type}');
+      helpCount += 2;
+      onRewarded();
     });
     rewardedAd = null;
   }
 }
-

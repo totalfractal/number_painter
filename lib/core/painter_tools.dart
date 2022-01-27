@@ -37,7 +37,7 @@ class PainterTools {
         svgAttributes.firstWhere((attribute) => attribute.name.toString() == 'height').value,
       ),
     );
-   
+
     final canvasSize = Size(
       MediaQuery.of(context).size.width,
       MediaQuery.of(context).size.height * 0.85,
@@ -50,8 +50,8 @@ class PainterTools {
   ///Задать линии и области
   static void setLinesAndShapes(BuildContext context, String svgString, List<SvgShapeModel> shapes, List<SvgLineModel> lines, FittedSizes fs) {
     //final fs = getFittedSize(context, svgString);
-     final stringSvgPathShapes = List<XmlElement>.from(XmlDocument.parse(svgString).findAllElements('path'));
-     final canvasSize = Size(
+    final stringSvgPathShapes = List<XmlElement>.from(XmlDocument.parse(svgString).findAllElements('path'));
+    final canvasSize = Size(
       MediaQuery.of(context).size.width,
       MediaQuery.of(context).size.height * 0.85,
     );
@@ -69,20 +69,22 @@ class PainterTools {
   }
 
   ///Получить из БД прогресс, если таковой имеется
-  static Future<void> getDbPainter(String id, List<SvgShapeModel> shapes, PainterProgressModel painterProgress){
+  static Future<void> getDbPainter(String id, List<SvgShapeModel> shapes, PainterProgressModel painterProgress) {
     return PainterTools.dbProvider.getPainter(id).then((painter) async {
       //Если прогресс существует, то записываем его в shapes
-        if (painter != null) {
-          debugPrint(painter.id);
-          final dbShapesStringList = painter.shapes.split(' ');
-          final shapesList = dbShapesStringList.map((e) => e.split(',')[1]).toList();
-          for (var i = 0; i < shapes.length; i++) {
-            shapes[i].isPainted = shapesList[i] == 'true';
-          }
-          //Если прогресса не существует, то добавляем новый
-        } else {
-          await PainterTools.dbProvider.addNewPainter(painterProgress);
+      if (painter != null) {
+        debugPrint(painter.id);
+        final dbShapesStringList = painter.shapes.split(' ');
+        final shapesList = dbShapesStringList.map((e) => e.split(',')[1]).toList();
+        for (var i = 0; i < shapes.length; i++) {
+          shapes[i].isPainted = shapesList[i] == 'true';
         }
-      });
+        //Также отмечаем завершенность
+        painterProgress.isCompleted = painter.isCompleted;
+        //Если прогресса не существует, то добавляем новый
+      } else {
+        await PainterTools.dbProvider.addNewPainter(painterProgress);
+      }
+    });
   }
 }

@@ -6,10 +6,12 @@ import 'package:number_painter/core/rewards.dart';
 class HelpButton extends StatefulWidget {
   final TransformationController transformationController;
   final List<SvgShapeModel> selectedShapes;
+  final Rewards rewards;
 
   const HelpButton({
     required this.transformationController,
     required this.selectedShapes,
+    required this.rewards,
     Key? key,
   }) : super(key: key);
 
@@ -37,9 +39,15 @@ class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateM
         if (widget.selectedShapes.isNotEmpty) {
           for (final shape in widget.selectedShapes) {
             if (!shape.isPainted) {
-              _animateHelpInitialize(shape);
-              //print(Offset(shape.number.dx, shape.number.dy));
-              //debugPrint(widget.transformationController.toScene(Offset(shape.number.dx, shape.number.dy)).toString());
+              if (helpCount > 0) {
+                //Двигаемся к номеру
+                _animateHelpInitialize(shape);
+                //Уменьшаем счетчик помощи
+                setState(() => --helpCount);
+              } else {
+                widget.rewards.showRewardedAd(() => setState(() {}));
+              }
+              break;
             }
           }
         }
@@ -56,7 +64,17 @@ class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateM
             ),
             height: 60,
             width: 60,
-            child: const Icon(Icons.lightbulb_rounded),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.lightbulb_rounded),
+                if (helpCount == 0)
+                  const Text(
+                    '+2',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+              ],
+            ),
           ),
           Positioned(
             bottom: -5,
@@ -70,7 +88,10 @@ class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateM
               ),
               height: 30,
               width: 30,
-              child: Text(helpCount.toString()),
+              child: Text(
+                helpCount > 0 ? helpCount.toString() : 'AD',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ),
         ],
