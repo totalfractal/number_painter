@@ -92,6 +92,21 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
     debugPrint('build');
     return Scaffold(
       backgroundColor: Colors.white,
+      bottomNavigationBar: Visibility(
+              visible: !widget.painterProgressModel.isCompleted,
+              child: Container(
+                alignment: Alignment.center,
+                height: 100,
+                width: MediaQuery.of(context).size.width,
+                child: ColorPicker(
+                  key: _colorListKey,
+                  percentController: _percentController,
+                  sortedShapes: widget.sortedShapes,
+                  onColorSelect: _callBackIndexColorOfColorPicker,
+                ),
+              ),
+            ),
+      extendBody: true,
       body:
           // Этот виджет нужен для переброса данных в другие виджеты
           //c помощью PainterInherited.of(context)
@@ -107,148 +122,125 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
         },
         ),
         rewardCallback: () => setState(() {}),
-        child: Column(
-          children: <Widget>[
-            Stack(
-              children: [
-                InteractiveViewer(
-                  transformationController: _transformationController,
-                  onInteractionUpdate: (details) {
-                    //debugPrint(details.scale.toString());
-                    _scaleNotifier.value = _transformationController.value.getMaxScaleOnAxis();
-                  },
-                  //onInteractionStart: _onInteractionStart,
-                  minScale: 0.1,
-                  maxScale: 100.0,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      SizedBox(
-                        width: widget.fittedSvgSize.destination.width,
-                        height: widget.fittedSvgSize.destination.height,
-                        child: const CheckersPaint(),
-                      ),
-                      SizedBox(
-                        width: _size.width,
-                        height: _size.height * 0.85,
-                        child: ManyCirclesPaint(
-                          notifier: _offsetNotifier,
-                          selectedColoredShapes: _selectedColoringShapes,
-                          percentController: _percentController,
-                          colorListKey: _colorListKey,
-                          onEndCircle: () => setState(() {}),
-                        ),
-                      ),
-                      SizedBox(
-                        width: _size.width,
-                        height: _size.height * 0.85,
-                        child: FadePaint(fadeController: _fadeController, selectedSvgShapes: _selectedShapes),
-                      ),
-                      SizedBox(
-                        width: _size.width,
-                        height: _size.height * 0.85,
-                        child: Listener(
-                          onPointerUp: (e) {
-                            _onTapUp(e, context);
-                          },
-                          child: RepaintBoundary(
-                            child: CustomPaint(
-                              isComplex: true,
-                              painter: ShapePainter(
-                                notifier: _offsetNotifier,
-                                shapes: widget.svgShapes,
-                                selectedShapes: _selectedShapes,
-                                lines: widget.svgLines,
-                                sortedShapes: widget.sortedShapes,
-                                selectedColor: _selectedColor,
-                                isInit: isInit,
-                                center: Offset(
-                                  _size.width / 2,
-                                  _size.height * 0.85 / 2,
-                                ),
-                              ),
+        child: Stack(
+          children: [
+            InteractiveViewer(
+              transformationController: _transformationController,
+              onInteractionUpdate: (details) {
+                //debugPrint(details.scale.toString());
+                _scaleNotifier.value = _transformationController.value.getMaxScaleOnAxis();
+              },
+              //onInteractionStart: _onInteractionStart,
+              minScale: 0.1,
+              maxScale: 100.0,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: widget.fittedSvgSize.destination.width,
+                    height: widget.fittedSvgSize.destination.height,
+                    child: const CheckersPaint(),
+                  ),
+                  SizedBox(
+                    width: _size.width,
+                    height: _size.height ,
+                    child: ManyCirclesPaint(
+                      notifier: _offsetNotifier,
+                      selectedColoredShapes: _selectedColoringShapes,
+                      percentController: _percentController,
+                      colorListKey: _colorListKey,
+                      onEndCircle: () => setState(() {}),
+                    ),
+                  ),
+                  SizedBox(
+                    width: _size.width,
+                    height: _size.height ,
+                    child: FadePaint(fadeController: _fadeController, selectedSvgShapes: _selectedShapes),
+                  ),
+                  SizedBox(
+                    width: _size.width,
+                    height: _size.height ,
+                    child: Listener(
+                      onPointerUp: (e) {
+                        _onTapUp(e, context);
+                      },
+                      child: RepaintBoundary(
+                        child: CustomPaint(
+                          isComplex: true,
+                          painter: ShapePainter(
+                            notifier: _offsetNotifier,
+                            shapes: widget.svgShapes,
+                            selectedShapes: _selectedShapes,
+                            lines: widget.svgLines,
+                            sortedShapes: widget.sortedShapes,
+                            selectedColor: _selectedColor,
+                            isInit: isInit,
+                            center: Offset(
+                              _size.width / 2,
+                              _size.height * 0.85 / 2,
                             ),
                           ),
                         ),
                       ),
-                      IgnorePointer(
-                        child: SizedBox(
-                          width: _size.width,
-                          height: _size.height * 0.85,
-                          child: LinePaint(svgLines: widget.svgLines),
-                        ),
-                      ),
-                      IgnorePointer(
-                        child: SizedBox(
-                          width: _size.width,
-                          height: _size.height * 0.85,
-                          //С помощью этого виджета слушаем изменения при зуме
-                          child: ValueListenableBuilder(
-                            valueListenable: _scaleNotifier,
-                            builder: (context, scale, child) {
-                              return RepaintBoundary(
-                                child: CustomPaint(
-                                  painter: NumberPainter(shapes: widget.svgShapes, scale: scale as double),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  bottom: 10,
-                  right: 10,
-                  child: ZoomOutButton(key: _zoomKey, transformController: _transformationController),
-                ),
-                Visibility(
-                  visible: !widget.painterProgressModel.isCompleted,
-                  child: Positioned(
-                    top: MediaQuery.of(context).padding.top + 10,
-                    right: 10,
-                    child: HelpButton(
-                      transformationController: _transformationController,
-                      selectedShapes: _selectedShapes,
-                      rewards: _rewards,
                     ),
                   ),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).padding.top + 10,
-                  left: 10,
-                  child: IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.green,
+                  IgnorePointer(
+                    child: SizedBox(
+                      width: _size.width,
+                      height: _size.height ,
+                      child: LinePaint(svgLines: widget.svgLines),
                     ),
                   ),
-                ),
-                Visibility(
-                  visible: !widget.painterProgressModel.isCompleted, child: RewardButton(rewards: _rewards,),),
-              ],
+                  IgnorePointer(
+                    child: SizedBox(
+                      width: _size.width,
+                      height: _size.height ,
+                      //С помощью этого виджета слушаем изменения при зуме
+                      child: ValueListenableBuilder(
+                        valueListenable: _scaleNotifier,
+                        builder: (context, scale, child) {
+                          return RepaintBoundary(
+                            child: CustomPaint(
+                              painter: NumberPainter(shapes: widget.svgShapes, scale: scale as double),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const Spacer(),
-            const Divider(
-              height: 1,
-              color: Colors.black,
+            Positioned(
+              bottom: 150,
+              right: 10,
+              child: ZoomOutButton(key: _zoomKey, transformController: _transformationController),
             ),
             Visibility(
               visible: !widget.painterProgressModel.isCompleted,
-              child: Container(
-                alignment: Alignment.center,
-                height: 100,
-                width: MediaQuery.of(context).size.width,
-                child: ColorPicker(
-                  key: _colorListKey,
-                  percentController: _percentController,
-                  sortedShapes: widget.sortedShapes,
-                  onColorSelect: _callBackIndexColorOfColorPicker,
+              child: Positioned(
+                top: MediaQuery.of(context).padding.top + 10,
+                right: 10,
+                child: HelpButton(
+                  transformationController: _transformationController,
+                  selectedShapes: _selectedShapes,
+                  rewards: _rewards,
                 ),
               ),
             ),
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 10,
+              left: 10,
+              child: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: Colors.green,
+                ),
+              ),
+            ),
+            Visibility(
+              visible: !widget.painterProgressModel.isCompleted, child: RewardButton(rewards: _rewards,),),
           ],
         ),
       ),
