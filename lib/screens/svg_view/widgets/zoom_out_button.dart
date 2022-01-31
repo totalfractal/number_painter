@@ -14,12 +14,23 @@ class ZoomOutButtonState extends State<ZoomOutButton> with SingleTickerProviderS
     duration: const Duration(milliseconds: 400),
   );
 
-  Animation<Matrix4>? _animationReset;
+   Animation<Matrix4>? _animationReset;
+
+  @override
+  void dispose() {
+    _controllerReset.dispose();
+    super.dispose();
+  }
+
+ 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
+    return IconButton(
       onPressed: animateResetInitialize,
-      child: const Icon(Icons.zoom_out_map_rounded),
+      icon: const Icon(
+        Icons.zoom_out_map_outlined,
+        size: 40,
+      ),
     );
   }
 
@@ -33,7 +44,6 @@ class ZoomOutButtonState extends State<ZoomOutButton> with SingleTickerProviderS
     _controllerReset.forward();
   }
 
-
   void _onAnimateReset() {
     widget.transformController.value = _animationReset!.value;
     if (!_controllerReset.isAnimating) {
@@ -43,7 +53,6 @@ class ZoomOutButtonState extends State<ZoomOutButton> with SingleTickerProviderS
     }
   }
 
-  
 // Stop a running reset to home transform animation.
   void _animateResetStop() {
     _controllerReset.stop();

@@ -18,12 +18,17 @@ class _RewardButtonState extends State<RewardButton> with SingleTickerProviderSt
         ..addStatusListener((status) {
           if (status == AnimationStatus.completed) {
             Future.delayed(const Duration(seconds: 5), () {
-              _rewardController.animateBack(_lowerBound);
+              if (mounted){
+                _rewardController.animateBack(_lowerBound);
+              }
+              
             });
           }
           if (status == AnimationStatus.dismissed) {
             Future.delayed(const Duration(seconds: 30), () {
-              _rewardController.forward(from: _lowerBound);
+              if (mounted) {
+                _rewardController.forward(from: _lowerBound);
+              }
             });
           }
         })
@@ -44,7 +49,9 @@ class _RewardButtonState extends State<RewardButton> with SingleTickerProviderSt
     Future.delayed(
       const Duration(seconds: 5),
       () {
-        _rewardController.forward(from: _lowerBound);
+        if (mounted) {
+                _rewardController.forward(from: _lowerBound);
+              }
       },
     );
     //}

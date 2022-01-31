@@ -53,33 +53,39 @@ class _ColorItemState extends State<ColorItem> with SingleTickerProviderStateMix
                   } */
         ,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
+          duration: const Duration(milliseconds: 300),
           width: 55,
           height: 55,
-          margin: widget.selected ? const EdgeInsets.only(bottom: 10, left: 5, right: 5) : const EdgeInsets.symmetric(horizontal: 5),
+          margin: widget.selected ? const EdgeInsets.only(bottom: 20, left: 5, right: 5) : const EdgeInsets.symmetric(horizontal: 5),
           child: widget.selected
-              ? RepaintBoundary(
-                  child: CustomPaint(
-                    painter: RadialProgressPainter(
-                      // В зависимости от яркости цвета сделать RadialProgress светлее/темнее
-                      bgColor: widget.color.computeLuminance() >= 0.4 ? _darken(widget.color, .2) : _lighten(widget.color, .2),
-                      lineColor: widget.color,
-                      width: 10.0,
-                      oldPercent: widget.oldPercent,
-                      currentPercent: widget.currentPercent,
-                      animation: widget.percentController,
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(color: widget.color, shape: BoxShape.circle),
-                      child: Center(
-                        child: Text(
-                          '${widget.number + 1}',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              ? Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(top: -20, bottom: -10, left: -20, right: -20, child: DecoratedBox(decoration: BoxDecoration( color: Colors.teal[50], shape: BoxShape.circle,),),),
+                  RepaintBoundary(
+                      child: CustomPaint(
+                        painter: RadialProgressPainter(
+                          // В зависимости от яркости цвета сделать RadialProgress светлее/темнее
+                          bgColor: widget.color.computeLuminance() >= 0.4 ? _darken(widget.color, .2) : _lighten(widget.color, .2),
+                          lineColor: widget.color,
+                          width: 10.0,
+                          oldPercent: widget.oldPercent,
+                          currentPercent: widget.currentPercent,
+                          animation: widget.percentController,
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(color: widget.color, shape: BoxShape.circle),
+                          child: Center(
+                            child: Text(
+                              '${widget.number + 1}',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                )
+                ],
+              )
               : Container(
                   decoration: BoxDecoration(color: widget.color, shape: BoxShape.circle),
                   child: Center(

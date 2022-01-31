@@ -43,14 +43,33 @@ class ColorPickerState extends State<ColorPicker> with SingleTickerProviderState
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: AnimatedList(
-        key: _listKey,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        scrollDirection: Axis.horizontal,
-        initialItemCount: _animatedList.length,
-        itemBuilder: _buildItem,
-      ),
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Positioned.fill(
+          top: 20,
+          child: Container(
+                      color: Colors.teal[50],
+                      alignment: Alignment.center,
+                      height: 80,
+                      width: MediaQuery.of(context).size.width,
+          ),
+        ),
+        Container(
+                    //color: Colors.red,
+                    alignment: Alignment.center,
+                    height: 120,
+                    width: MediaQuery.of(context).size.width,
+          child: AnimatedList(
+            key: _listKey,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            scrollDirection: Axis.horizontal,
+            initialItemCount: _animatedList.length,
+            itemBuilder: _buildItem,
+          ),
+        ),
+          
+      ],
     );
   }
 

@@ -92,11 +92,11 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
     debugPrint('build');
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: Visibility(
+      /* bottomNavigationBar: Visibility(
               visible: !widget.painterProgressModel.isCompleted,
               child: Container(
                 alignment: Alignment.center,
-                height: 100,
+                height: 60,
                 width: MediaQuery.of(context).size.width,
                 child: ColorPicker(
                   key: _colorListKey,
@@ -105,7 +105,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                   onColorSelect: _callBackIndexColorOfColorPicker,
                 ),
               ),
-            ),
+            ), */
       extendBody: true,
       body:
           // Этот виджет нужен для переброса данных в другие виджеты
@@ -137,8 +137,8 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                 alignment: Alignment.center,
                 children: [
                   SizedBox(
-                    width: widget.fittedSvgSize.destination.width,
-                    height: widget.fittedSvgSize.destination.height,
+                    width: _size.width,
+                    height: _size.height ,
                     child: const CheckersPaint(),
                   ),
                   SizedBox(
@@ -241,6 +241,18 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
             ),
             Visibility(
               visible: !widget.painterProgressModel.isCompleted, child: RewardButton(rewards: _rewards,),),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Visibility(
+              visible: !widget.painterProgressModel.isCompleted,
+              child: ColorPicker(
+                key: _colorListKey,
+                percentController: _percentController,
+                sortedShapes: widget.sortedShapes,
+                onColorSelect: _callBackIndexColorOfColorPicker,
+              ),
+            ),
+          ),
           ],
         ),
       ),
@@ -267,7 +279,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   }
 
   void _showPickToast(BuildContext context) {
-    if (_currentToast == null) {
+    if (_currentToast == null && !widget.painterProgressModel.isCompleted) {
       _currentToast = Toasts.showPickColorToast(context, 10);
       Future<void>.delayed(const Duration(seconds: 5), () {
         _currentToast?.removeCustomToast();
