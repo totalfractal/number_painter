@@ -101,13 +101,11 @@ class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateM
 
   void _animateHelpInitialize(SvgShapeModel shape) {
     _controllerReset.reset();
-    var focalPoint = widget.transformationController.toScene(Offset(shape.number.dx, shape.number.dy));
-    //final translatedMatrix = widget.transformationController.value.clone()..translate(shape.number.dx, shape.number.dy);
     _animationReset = Matrix4Tween(
       begin: widget.transformationController.value,
       end: Matrix4Transform()
           .scale(15, origin: Offset(shape.number.dx, shape.number.dy))
-          .matrix4, //..scale(3.0)..translate((focalPoint.dx - shape.number.dx), (focalPoint.dy - shape.number.dy)) /* ..scale(2.0) */,
+          .matrix4,
     ).animate(_controllerReset);
     _animationReset!.addListener(_onAnimateReset);
     _controllerReset.forward();

@@ -18,6 +18,7 @@ class SvgShapeModel {
     this.id,
     this.d,
     this.fill,
+    this.isPainted,
     //this.listModelSvgFile,
   ) : _path = parseSvgPathData(d);
 
@@ -27,6 +28,7 @@ class SvgShapeModel {
       svgElement.getAttribute('d').toString(),
       HexColor(svgElement.getAttribute('fill').toString() == 'black' ? '#000000' : svgElement.getAttribute('fill').toString()),
       //svgElement.findElements('path').map<ModelSvgShape>((e) => ModelSvgShape.fromElement(e)).toList(),
+      svgElement.getAttribute('fill').toString() == 'black',
     );
   }
 
@@ -35,6 +37,7 @@ class SvgShapeModel {
       '',
       '',
       HexColor('FF000000'),
+      false,
       //[],
     );
   }

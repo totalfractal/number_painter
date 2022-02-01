@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:number_painter/core/db_provider.dart';
 import 'package:number_painter/core/models/coloring_shape.dart';
-import 'package:number_painter/core/models/db_models/painter_progress_model.dart';
-import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
 import 'package:number_painter/core/painter_tools.dart';
 import 'package:number_painter/screens/svg_view/widgets/circle_paint/circle_painter.dart';
 import 'package:number_painter/screens/svg_view/widgets/color_picker/color_picker.dart';
