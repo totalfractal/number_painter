@@ -45,12 +45,7 @@ class _ColorItemState extends State<ColorItem> with SingleTickerProviderStateMix
       margin: const EdgeInsets.symmetric(horizontal: 8),
       child: GestureDetector(
         onTap: widget
-            .onTap /* () {
-                    setState(() {
-                      selectedColor = _sortedShapes.keys.elementAt(index);
-                      widget.onColorSelect(selectedColor);
-                    });
-                  } */
+            .onTap 
         ,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),

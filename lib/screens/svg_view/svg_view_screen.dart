@@ -43,7 +43,6 @@ class SvgViewScreen extends StatefulWidget {
 class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateMixin {
   final _offsetNotifier = ValueNotifier(Offset.zero);
   final _scaleNotifier = ValueNotifier(1.0);
-  final _rewardNotifier = ValueNotifier(0.0);
 
 
   final List<ColoringShape> _selectedColoringShapes = [];
@@ -92,20 +91,6 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
     debugPrint('build');
     return Scaffold(
       backgroundColor: Colors.white,
-      /* bottomNavigationBar: Visibility(
-              visible: !widget.painterProgressModel.isCompleted,
-              child: Container(
-                alignment: Alignment.center,
-                height: 60,
-                width: MediaQuery.of(context).size.width,
-                child: ColorPicker(
-                  key: _colorListKey,
-                  percentController: _percentController,
-                  sortedShapes: widget.sortedShapes,
-                  onColorSelect: _callBackIndexColorOfColorPicker,
-                ),
-              ),
-            ), */
       extendBody: true,
       body:
           // Этот виджет нужен для переброса данных в другие виджеты
@@ -124,92 +109,94 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
         rewardCallback: () => setState(() {}),
         child: Stack(
           children: [
-            InteractiveViewer(
-              transformationController: _transformationController,
-              onInteractionUpdate: (details) {
-                //debugPrint(details.scale.toString());
-                _scaleNotifier.value = _transformationController.value.getMaxScaleOnAxis();
-              },
-              //onInteractionStart: _onInteractionStart,
-              minScale: 0.1,
-              maxScale: 100.0,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: _size.width,
-                    height: _size.height ,
-                    child: const CheckersPaint(),
-                  ),
-                  SizedBox(
-                    width: _size.width,
-                    height: _size.height ,
-                    child: ManyCirclesPaint(
-                      notifier: _offsetNotifier,
-                      selectedColoredShapes: _selectedColoringShapes,
-                      percentController: _percentController,
-                      colorListKey: _colorListKey,
-                      onEndCircle: () => setState(() {}),
-                    ),
-                  ),
-                  SizedBox(
-                    width: _size.width,
-                    height: _size.height ,
-                    child: FadePaint(fadeController: _fadeController, selectedSvgShapes: _selectedShapes),
-                  ),
-                  SizedBox(
-                    width: _size.width,
-                    height: _size.height ,
-                    child: Listener(
-                      onPointerUp: (e) {
-                        _onTapUp(e, context);
-                      },
-                      child: RepaintBoundary(
-                        child: CustomPaint(
-                          isComplex: true,
-                          painter: ShapePainter(
-                            notifier: _offsetNotifier,
-                            shapes: widget.svgShapes,
-                            selectedShapes: _selectedShapes,
-                            lines: widget.svgLines,
-                            sortedShapes: widget.sortedShapes,
-                            selectedColor: _selectedColor,
-                            isInit: isInit,
-                            center: Offset(
-                              _size.width / 2,
-                              _size.height * 0.85 / 2,
+            OrientationBuilder(
+              builder: (context, orientation) {
+                return InteractiveViewer(
+                  transformationController: _transformationController,
+                  onInteractionUpdate: (details) {
+                    _scaleNotifier.value = _transformationController.value.getMaxScaleOnAxis();
+                  },
+                  minScale: 0.1,
+                  maxScale: 100.0,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        width: _size.width,
+                        height: _size.height ,
+                        child: const CheckersPaint(),
+                      ),
+                      SizedBox(
+                        width: _size.width,
+                        height: _size.height ,
+                        child: ManyCirclesPaint(
+                          notifier: _offsetNotifier,
+                          selectedColoredShapes: _selectedColoringShapes,
+                          percentController: _percentController,
+                          colorListKey: _colorListKey,
+                          onEndCircle: () => setState(() {}),
+                        ),
+                      ),
+                      SizedBox(
+                        width: _size.width,
+                        height: _size.height ,
+                        child: FadePaint(fadeController: _fadeController, selectedSvgShapes: _selectedShapes),
+                      ),
+                      SizedBox(
+                        width: _size.width,
+                        height: _size.height ,
+                        child: Listener(
+                          onPointerUp: (e) {
+                            _onTapUp(e, context);
+                          },
+                          child: RepaintBoundary(
+                            child: CustomPaint(
+                              isComplex: true,
+                              painter: ShapePainter(
+                                notifier: _offsetNotifier,
+                                shapes: widget.svgShapes,
+                                selectedShapes: _selectedShapes,
+                                lines: widget.svgLines,
+                                sortedShapes: widget.sortedShapes,
+                                selectedColor: _selectedColor,
+                                isInit: isInit,
+                                center: Offset(
+                                  _size.width / 2,
+                                  _size.height * 0.85 / 2,
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  IgnorePointer(
-                    child: SizedBox(
-                      width: _size.width,
-                      height: _size.height ,
-                      child: LinePaint(svgLines: widget.svgLines),
-                    ),
-                  ),
-                  IgnorePointer(
-                    child: SizedBox(
-                      width: _size.width,
-                      height: _size.height ,
-                      //С помощью этого виджета слушаем изменения при зуме
-                      child: ValueListenableBuilder(
-                        valueListenable: _scaleNotifier,
-                        builder: (context, scale, child) {
-                          return RepaintBoundary(
-                            child: CustomPaint(
-                              painter: NumberPainter(shapes: widget.svgShapes, scale: scale as double),
-                            ),
-                          );
-                        },
+                      IgnorePointer(
+                        child: SizedBox(
+                          width: _size.width,
+                          height: _size.height ,
+                          child: LinePaint(svgLines: widget.svgLines),
+                        ),
                       ),
-                    ),
+                      IgnorePointer(
+                        child: SizedBox(
+                          width: _size.width,
+                          height: _size.height ,
+                          //С помощью этого виджета слушаем изменения при зуме
+                          child: ValueListenableBuilder(
+                            valueListenable: _scaleNotifier,
+                            builder: (context, scale, child) {
+                              return RepaintBoundary(
+                                child: CustomPaint(
+                                  painter: NumberPainter(shapes: widget.svgShapes, scale: scale as double),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
             Positioned(
               bottom: 150,

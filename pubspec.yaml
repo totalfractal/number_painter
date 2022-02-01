@@ -30,8 +30,8 @@ dependencies:
   flutter:
     sdk: flutter
   hexcolor: ^2.0.5
-  xml: ^5.1.0
   path_drawing: ^0.5.1
+  xml: ^5.1.0
 
 
 

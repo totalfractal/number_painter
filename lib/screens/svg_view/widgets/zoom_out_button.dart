@@ -30,6 +30,7 @@ class ZoomOutButtonState extends State<ZoomOutButton> with SingleTickerProviderS
       icon: const Icon(
         Icons.zoom_out_map_outlined,
         size: 40,
+        color: Colors.green,
       ),
     );
   }
@@ -50,22 +51,6 @@ class ZoomOutButtonState extends State<ZoomOutButton> with SingleTickerProviderS
       _animationReset!.removeListener(_onAnimateReset);
       _animationReset = null;
       _controllerReset.reset();
-    }
-  }
-
-// Stop a running reset to home transform animation.
-  void _animateResetStop() {
-    _controllerReset.stop();
-    _animationReset?.removeListener(_onAnimateReset);
-    _animationReset = null;
-    _controllerReset.reset();
-  }
-
-  void _onInteractionStart(ScaleStartDetails details) {
-    // If the user tries to cause a transformation while the reset animation is
-    // running, cancel the reset animation.
-    if (_controllerReset.status == AnimationStatus.forward) {
-      _animateResetStop();
     }
   }
 }

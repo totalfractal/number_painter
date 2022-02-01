@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:number_painter/core/painter_tools.dart';
 import 'package:number_painter/screens/loading_screen.dart';
@@ -9,6 +9,9 @@ import 'package:number_painter/screens/loading_screen.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
+  SystemChrome.setPreferredOrientations(
+              [DeviceOrientation.portraitUp],
+          );
   runApp(
     const MaterialApp(
       home: PainterChoice(),
