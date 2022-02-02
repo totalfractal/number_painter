@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:matrix4_transform/matrix4_transform.dart';
 import 'package:number_painter/core/models/coloring_shape.dart';
 import 'package:number_painter/core/models/db_models/painter_progress_model.dart';
 import 'package:number_painter/core/models/svg_models/svg_line_model.dart';
@@ -44,14 +45,12 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   final _offsetNotifier = ValueNotifier(Offset.zero);
   final _scaleNotifier = ValueNotifier(1.0);
 
-
   final List<ColoringShape> _selectedColoringShapes = [];
 
   final GlobalKey<ColorPickerState> _colorListKey = GlobalKey<ColorPickerState>();
 
   late final _fadeController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
   late final _percentController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
-
 
   final _transformationController = TransformationController();
 
@@ -79,6 +78,11 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      _transformationController.value =
+          Matrix4Transform().scale(1.15, origin: Offset(widget.fittedSvgSize.destination.width/2,widget.fittedSvgSize.destination.height/2)).matrix4;
+    });
+
     _transformationController.addListener(() {
       _scaleNotifier.value = _transformationController.value.getMaxScaleOnAxis();
     });
@@ -101,12 +105,13 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
           painterProgress: widget.painterProgressModel,
           svgShapes: widget.svgShapes,
           selectedShapes: _selectedShapes,
-          onComplete: () => setState(() {
-            _zoomKey.currentState!.animateResetInitialize();
-            widget.painterProgressModel.isCompleted = true;
-            PainterTools.dbProvider.updatePainter(widget.painterProgressModel);
-            Toasts.showCompleteToast(context, 10);
-          },
+          onComplete: () => setState(
+            () {
+              _zoomKey.currentState!.animateResetInitialize();
+              widget.painterProgressModel.isCompleted = true;
+              PainterTools.dbProvider.updatePainter(widget.painterProgressModel);
+              Toasts.showCompleteToast(context, 10);
+            },
           ),
           rewardCallback: () => setState(() {}),
           child: Stack(
@@ -125,12 +130,12 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                       children: [
                         SizedBox(
                           width: _size.width,
-                          height: _size.height ,
+                          height: _size.height,
                           child: const CheckersPaint(),
                         ),
                         SizedBox(
                           width: _size.width,
-                          height: _size.height ,
+                          height: _size.height,
                           child: ManyCirclesPaint(
                             notifier: _offsetNotifier,
                             selectedColoredShapes: _selectedColoringShapes,
@@ -141,12 +146,12 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                         ),
                         SizedBox(
                           width: _size.width,
-                          height: _size.height ,
+                          height: _size.height,
                           child: FadePaint(fadeController: _fadeController, selectedSvgShapes: _selectedShapes),
                         ),
                         SizedBox(
                           width: _size.width,
-                          height: _size.height ,
+                          height: _size.height,
                           child: Listener(
                             onPointerUp: (e) {
                               _onTapUp(e, context);
@@ -174,14 +179,14 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                         IgnorePointer(
                           child: SizedBox(
                             width: _size.width,
-                            height: _size.height ,
+                            height: _size.height,
                             child: LinePaint(svgLines: widget.svgLines),
                           ),
                         ),
                         IgnorePointer(
                           child: SizedBox(
                             width: _size.width,
-                            height: _size.height ,
+                            height: _size.height,
                             //С помощью этого виджета слушаем изменения при зуме
                             child: ValueListenableBuilder(
                               valueListenable: _scaleNotifier,
@@ -229,19 +234,23 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                 ),
               ),
               Visibility(
-                visible: !widget.painterProgressModel.isCompleted, child: RewardButton(rewards: _rewards,),),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Visibility(
                 visible: !widget.painterProgressModel.isCompleted,
-                child: ColorPicker(
-                  key: _colorListKey,
-                  percentController: _percentController,
-                  sortedShapes: widget.sortedShapes,
-                  onColorSelect: _callBackIndexColorOfColorPicker,
+                child: RewardButton(
+                  rewards: _rewards,
                 ),
               ),
-            ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Visibility(
+                  visible: !widget.painterProgressModel.isCompleted,
+                  child: ColorPicker(
+                    key: _colorListKey,
+                    percentController: _percentController,
+                    sortedShapes: widget.sortedShapes,
+                    onColorSelect: _callBackIndexColorOfColorPicker,
+                  ),
+                ),
+              ),
             ],
           ),
         ),

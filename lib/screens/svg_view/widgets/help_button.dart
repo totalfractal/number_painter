@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:matrix4_transform/matrix4_transform.dart';
 import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
 import 'package:number_painter/core/rewards.dart';
+import 'package:number_painter/core/toast.dart';
 
 class HelpButton extends StatefulWidget {
   final TransformationController transformationController;
@@ -50,6 +51,8 @@ class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateM
               break;
             }
           }
+        } else {
+          Toasts.showPickColorToast(context, 5);
         }
       },
       child: Stack(
@@ -103,9 +106,7 @@ class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateM
     _controllerReset.reset();
     _animationReset = Matrix4Tween(
       begin: widget.transformationController.value,
-      end: Matrix4Transform()
-          .scale(15, origin: Offset(shape.number.dx, shape.number.dy))
-          .matrix4,
+      end: Matrix4Transform().scale(15, origin: Offset(shape.number.dx, shape.number.dy)).matrix4,
     ).animate(_controllerReset);
     _animationReset!.addListener(_onAnimateReset);
     _controllerReset.forward();
