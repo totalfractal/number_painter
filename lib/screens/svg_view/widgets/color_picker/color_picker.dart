@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:number_painter/core/models/color_list_model.dart';
 import 'package:number_painter/core/models/svg_models/svg_shape_model.dart';
+import 'package:number_painter/core/rewards.dart';
 import 'package:number_painter/screens/svg_view/widgets/color_picker/color_item.dart';
 import 'package:number_painter/screens/svg_view/widgets/painter_inherited.dart';
 
@@ -8,8 +10,9 @@ class ColorPicker extends StatefulWidget {
   final Map<Color, List<SvgShapeModel>> sortedShapes;
   final ValueChanged<Color> onColorSelect;
   final AnimationController percentController;
+  final Rewards rewards;
 
-  const ColorPicker({required this.sortedShapes, required this.onColorSelect, required this.percentController, Key? key}) : super(key: key);
+  const ColorPicker({required this.sortedShapes, required this.onColorSelect, required this.percentController, required this.rewards, Key? key}) : super(key: key);
 
   @override
   ColorPickerState createState() => ColorPickerState();
@@ -41,10 +44,10 @@ class ColorPickerState extends State<ColorPicker> with SingleTickerProviderState
   @override
   Widget build(BuildContext context) {
     return Stack(
-      alignment: Alignment.center,
+      alignment: Alignment.bottomCenter,
       children: [
         Positioned.fill(
-          top: 65,
+          top: 100,
           child: Container(
                       color: Colors.teal[50],
                       alignment: Alignment.center,
@@ -55,7 +58,7 @@ class ColorPickerState extends State<ColorPicker> with SingleTickerProviderState
         Container(
                     //color: Colors.red,
                     alignment: Alignment.center,
-                    height: 200,
+                    height: 270,
                     width: MediaQuery.of(context).size.width,
           child: AnimatedList(
             key: _listKey,
@@ -65,7 +68,13 @@ class ColorPickerState extends State<ColorPicker> with SingleTickerProviderState
             itemBuilder: _buildItem,
           ),
         ),
-          
+          Positioned(
+            bottom: MediaQuery.of(context).padding.bottom,
+            child: SizedBox(
+              width: widget.rewards.myBanner.size.width.toDouble(),
+            height: widget.rewards.myBanner.size.height.toDouble(),
+              child: AdWidget(ad: widget.rewards.myBanner),),
+          ),
       ],
     );
   }

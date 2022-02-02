@@ -206,7 +206,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                 },
               ),
               Positioned(
-                bottom: 150,
+                bottom: 200,
                 right: 10,
                 child: ZoomOutButton(key: _zoomKey, transformController: _transformationController),
               ),
@@ -248,6 +248,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                     percentController: _percentController,
                     sortedShapes: widget.sortedShapes,
                     onColorSelect: _callBackIndexColorOfColorPicker,
+                    rewards: _rewards,
                   ),
                 ),
               ),
