@@ -44,7 +44,7 @@ class ColorPickerState extends State<ColorPicker> with SingleTickerProviderState
       alignment: Alignment.center,
       children: [
         Positioned.fill(
-          top: 20,
+          top: 65,
           child: Container(
                       color: Colors.teal[50],
                       alignment: Alignment.center,
@@ -55,7 +55,7 @@ class ColorPickerState extends State<ColorPicker> with SingleTickerProviderState
         Container(
                     //color: Colors.red,
                     alignment: Alignment.center,
-                    height: 120,
+                    height: 200,
                     width: MediaQuery.of(context).size.width,
           child: AnimatedList(
             key: _listKey,
