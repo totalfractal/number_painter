@@ -205,11 +205,6 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                   );
                 },
               ),
-              Positioned(
-                bottom: 200,
-                right: 10,
-                child: ZoomOutButton(key: _zoomKey, transformController: _transformationController),
-              ),
               Visibility(
                 visible: !widget.painterProgressModel.isCompleted,
                 child: Positioned(
@@ -251,6 +246,12 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                     rewards: _rewards,
                   ),
                 ),
+              ),
+
+              Positioned(
+                bottom: 200,
+                right: 10,
+                child: ZoomOutButton(key: _zoomKey, transformController: _transformationController),
               ),
             ],
           ),
