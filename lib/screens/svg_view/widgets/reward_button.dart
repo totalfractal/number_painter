@@ -64,7 +64,7 @@ class _RewardButtonState extends State<RewardButton> with SingleTickerProviderSt
       left: _rewardController.value,
       child: GestureDetector(
         onTap: () {
-          widget.rewards.showRewardedAd(PainterInherited.of(context).rewardCallback);
+          widget.rewards.showRewardedAd(PainterInherited.of(context).rewardCallback, 2);
         },
         child: Stack(
           clipBehavior: Clip.none,

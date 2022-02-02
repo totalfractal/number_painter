@@ -46,7 +46,7 @@ class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateM
                 //Уменьшаем счетчик помощи
                 setState(() => --helpCount);
               } else {
-                widget.rewards.showRewardedAd(() => setState(() {}));
+                widget.rewards.showRewardedAd(() => setState(() {}), 1);
               }
               break;
             }
@@ -73,7 +73,7 @@ class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateM
                 const Icon(Icons.lightbulb_rounded),
                 if (helpCount == 0)
                   const Text(
-                    '+2',
+                    '+1',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
               ],

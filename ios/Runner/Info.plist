@@ -43,5 +43,12 @@
 	<false/>
 <key>GADApplicationIdentifier</key>
 <string>ca-app-pub-7041305716395438~9242844902</string>
+<key>SKAdNetworkItems</key>
+<array>
+	<dict>
+		<key>SKAdNetworkIdentifier</key>
+		<string>cstr6suwn9.skadnetwork</string>
+	</dict>
+</array>
 </dict>
 </plist>

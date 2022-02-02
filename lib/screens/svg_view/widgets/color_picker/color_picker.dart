@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:number_painter/core/models/color_list_model.dart';
@@ -68,12 +70,13 @@ class ColorPickerState extends State<ColorPicker> with SingleTickerProviderState
             itemBuilder: _buildItem,
           ),
         ),
+        if(widget.rewards.myBanner != null)
           Positioned(
-            bottom: MediaQuery.of(context).padding.bottom,
+            bottom: Platform.isIOS ? MediaQuery.of(context).padding.bottom : 30,
             child: SizedBox(
-              width: widget.rewards.myBanner.size.width.toDouble(),
-            height: widget.rewards.myBanner.size.height.toDouble(),
-              child: AdWidget(ad: widget.rewards.myBanner),),
+              width: widget.rewards.myBanner!.size.width.toDouble(),
+            height: widget.rewards.myBanner!.size.height.toDouble(),
+              child: AdWidget(ad: widget.rewards.myBanner!),),
           ),
       ],
     );
