@@ -39,13 +39,6 @@ class RadialProgressPainter extends CustomPainter {
 
     canvas
       ..drawCircle(center, radius, bgLine)
-      /* ..drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        pi,
-        pi * 2 * currentPercent,
-        false,
-        completedLine,
-      ) */
       ..drawArc(
         Rect.fromCircle(center: center, radius: radius),
         pi,

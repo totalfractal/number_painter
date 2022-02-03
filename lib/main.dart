@@ -10,8 +10,8 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
   SystemChrome.setPreferredOrientations(
-              [DeviceOrientation.portraitUp],
-          );
+    [DeviceOrientation.portraitUp],
+  );
   runApp(
     const MaterialApp(
       home: PainterChoice(),
@@ -39,19 +39,29 @@ class _PainterChoiceState extends State<PainterChoice> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: ListView(
-      children: _list
-          .map((e) => InkWell(
-            onLongPress: () => DefaultAssetBundle.of(context).loadString(e).then((value) => PainterTools.dbProvider.deletePainter(e)),
-            onTap: () => DefaultAssetBundle.of(context).loadString(e).then((value) => Navigator.of(context).push<void>(MaterialPageRoute(builder: (context) => LoadingScreen(id: e, svgString: value,)))),
-            child: Container(
-              height: 50,
-              padding: const EdgeInsets.all(16.0),
-              child: Text(e),
-            ),
-          ))
-          .toList(),
-    ),);
+      body: ListView(
+        children: _list
+            .map((e) => InkWell(
+                  onLongPress: () => DefaultAssetBundle.of(context).loadString(e).then((value) => PainterTools.dbProvider.deletePainter(e)),
+                  onTap: () => DefaultAssetBundle.of(context).loadString(e).then(
+                        (value) => Navigator.of(context).push<void>(
+                          MaterialPageRoute(
+                            builder: (context) => LoadingScreen(
+                              id: e,
+                              svgString: value,
+                            ),
+                          ),
+                        ),
+                      ),
+                  child: Container(
+                    height: 50,
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(e),
+                  ),
+                ))
+            .toList(),
+      ),
+    );
   }
 
   Future _initImages() async {
