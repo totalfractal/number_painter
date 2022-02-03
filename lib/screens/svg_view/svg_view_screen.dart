@@ -162,15 +162,7 @@ class _SvgViewScreenState extends State<SvgViewScreen> with TickerProviderStateM
                                 painter: ShapePainter(
                                   notifier: _offsetNotifier,
                                   shapes: widget.svgShapes,
-                                  selectedShapes: _selectedShapes,
                                   lines: widget.svgLines,
-                                  sortedShapes: widget.sortedShapes,
-                                  selectedColor: _selectedColor,
-                                  isInit: isInit,
-                                  center: Offset(
-                                    _size.width / 2,
-                                    _size.height * 0.85 / 2,
-                                  ),
                                 ),
                               ),
                             ),
