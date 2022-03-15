@@ -21,15 +21,21 @@ class HelpButton extends StatefulWidget {
 }
 
 class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateMixin {
-  late final AnimationController _controllerReset = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 400),
-  );
+  AnimationController? _controllerReset;
   Animation<Matrix4>? _animationReset;
 
   @override
+  void initState() {
+    super.initState();
+    _controllerReset = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+  }
+
+  @override
   void dispose() {
-    _controllerReset.dispose();
+    _controllerReset?.dispose();
     super.dispose();
   }
 
@@ -103,21 +109,21 @@ class _HelpButtonState extends State<HelpButton> with SingleTickerProviderStateM
   }
 
   void _animateHelpInitialize(SvgShapeModel shape) {
-    _controllerReset.reset();
+    _controllerReset?.reset();
     _animationReset = Matrix4Tween(
       begin: widget.transformationController.value,
       end: Matrix4Transform().scale(15, origin: Offset(shape.number.dx, shape.number.dy)).matrix4,
-    ).animate(_controllerReset);
+    ).animate(_controllerReset!);
     _animationReset!.addListener(_onAnimateReset);
-    _controllerReset.forward();
+    _controllerReset?.forward();
   }
 
   void _onAnimateReset() {
     widget.transformationController.value = _animationReset!.value;
-    if (!_controllerReset.isAnimating) {
+    if (!_controllerReset!.isAnimating) {
       _animationReset!.removeListener(_onAnimateReset);
       _animationReset = null;
-      _controllerReset.reset();
+      _controllerReset?.reset();
     }
   }
 }

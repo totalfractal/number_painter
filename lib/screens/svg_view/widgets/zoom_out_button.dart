@@ -9,16 +9,21 @@ class ZoomOutButton extends StatefulWidget {
 }
 
 class ZoomOutButtonState extends State<ZoomOutButton> with SingleTickerProviderStateMixin {
-  late final AnimationController _controllerReset = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 400),
-  );
+  AnimationController? _controllerReset;
+  Animation<Matrix4>? _animationReset;
 
-   Animation<Matrix4>? _animationReset;
+  @override
+  void initState() {
+    super.initState();
+    _controllerReset = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+  }
 
   @override
   void dispose() {
-    _controllerReset.dispose();
+    _controllerReset?.dispose();
     super.dispose();
   }
 
@@ -36,21 +41,21 @@ class ZoomOutButtonState extends State<ZoomOutButton> with SingleTickerProviderS
   }
 
   void animateResetInitialize() {
-    _controllerReset.reset();
+    _controllerReset?.reset();
     _animationReset = Matrix4Tween(
       begin: widget.transformController.value,
       end: Matrix4.identity(),
-    ).animate(_controllerReset);
+    ).animate(_controllerReset!);
     _animationReset!.addListener(_onAnimateReset);
-    _controllerReset.forward();
+    _controllerReset?.forward();
   }
 
   void _onAnimateReset() {
     widget.transformController.value = _animationReset!.value;
-    if (!_controllerReset.isAnimating) {
+    if (!_controllerReset!.isAnimating) {
       _animationReset!.removeListener(_onAnimateReset);
       _animationReset = null;
-      _controllerReset.reset();
+      _controllerReset?.reset();
     }
   }
 }

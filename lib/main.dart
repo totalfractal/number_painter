@@ -65,11 +65,9 @@ class _PainterChoiceState extends State<PainterChoice> {
   }
 
   Future _initImages() async {
-    // >> To get paths you need these 2 lines
     final manifestContent = await rootBundle.loadString('AssetManifest.json');
 
     final manifestMap = json.decode(manifestContent) as Map<String, dynamic>;
-    // >> To get paths you need these 2 lines
     setState(() {
       _list.addAll(manifestMap.keys.where((key) => key.contains('assets/')).where((key) => key.contains('.svg')));
     });
